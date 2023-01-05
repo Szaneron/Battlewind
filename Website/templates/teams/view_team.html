@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+    <title>Battlewind</title>
+
+    <style>
+        .custom {
+            width: 180px !important;
+        }
+    </style>
+</head>
+<body style="background-color: #16181b">
+{% include 'navbar.html' %}
+
+<div class="container text-white min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+    <div class="row ">
+        <div class="col-md-2 text-center">
+            <a class="btn btn-warning text-white mb-3 custom" href="{% url 'profile' %}">
+                <i class="bi bi-backspace-fill" style="float: left"></i> Wróć do profilu
+            </a>
+            {% if team.createdBy == request.user %}
+                <a class="btn btn-warning text-white mb-3 custom" href="{% url 'invite' team.id %}">
+                    <i class="bi bi-person-plus-fill" style="float: left"></i> Zaproś do drużyny
+                </a>
+            {% endif %}
+        </div>
+        <div class="col-md-8 text-center">
+            {% include 'messages.html' %}
+            <div class="card bg-warning">
+                <div class="card-header">
+                    <h1><b>{{ team.teamName }}</b></h1>
+                </div>
+
+                <div class="card-body">
+
+                    <h4 class="mt-6 text-center">Członkowie:</h4>
+                    <div class="row p-2">
+                        {% for member in team.members.all %}
+                            <div class="col-sm-4 p-2">
+                                <div class="card" style="background-color: #3b424a">
+                                    <div class="card-header"><b>{{ member.username }}</b></div>
+                                    <div class="card-body"><img class="img-fluid rounded mx-auto d-block" alt=""
+                                                                style="max-height: 50%; max-width: 50%"
+                                                                src="{{ member.profile.profilePic.url }}"></div>
+                                    <div class="card-footer">
+                                        {% if member.profile.summonerName != "" %}
+                                            <div>{{ member.profile.summonerName }}</div>
+
+                                        {% else %}
+                                            <span class="text-danger">Nie dodano!</span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+                {% if team.createdBy == request.user %}
+                    <div class="card-footer">
+                        <a href="" class="btn text-white" data-bs-toggle="modal"
+                           data-bs-target="#exampleModal"
+                           style="float: right">
+                            <i class="bi bi-gear-fill"></i> Edytuj drużynę
+                        </a>
+
+                        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-warning text-black text-center">
+                                    <h3 class="mt-3">Edycja drużyny</h3>
+                                    <form class="row g-3 needs-validation m-4" novalidate method="post">
+                                        {% csrf_token %}
+                                        <div class="col-md-12">
+                                            <label for="validationCustom01" class="form-label">Nowa nazwa
+                                                drużyny:</label>
+                                            <input type="text" class="form-control" id="validationCustom01" required
+                                                   name="teamName">
+                                            <div class="invalid-feedback">
+                                                Wprowadź nazwę swojej drużyny
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <button class="btn bg-dark w-25 text-white mt-2" type="submit"
+                                                    name="update">Zatwierdź
+                                            </button>
+                                        </div>
+                                    </form>
+
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+
+        </div>
+    </div>
+    {% if invitations %}
+        {% if team.createdBy == request.user %}
+            <div class="row mt-5">
+                <div class="col-md-2"></div>
+                <div class="col-md-8">
+                    <div class="card bg-warning text-center text-black">
+                        <div class="card-header"><h4>Zaproszeni użytkownicy</h4></div>
+
+                        <div class="card-body">
+                            {% for member in invitations %}
+                                <ul class="list-group">
+                                    <form method="post">
+                                        {% csrf_token %}
+                                        <li class="list-group-item list-group-item-success">{{ member.user.username }}
+                                            - {{ member.date_sent|timesince }} ago
+                                            <button type="submit" class="btn-close" name="cancel"
+                                                    style="float: right"></button>
+                                        </li>
+                                    </form>
+                                </ul>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
+
+
+<script>
+    (function () {
+        'use strict'
+
+        // Fetch all the forms we want to apply custom Bootstrap validation styles to
+        let forms = document.querySelectorAll('.needs-validation')
+
+        // Loop over them and prevent submission
+        Array.prototype.slice.call(forms)
+            .forEach(function (form) {
+                form.addEventListener('submit', function (event) {
+                    if (!form.checkValidity()) {
+                        event.preventDefault()
+                        event.stopPropagation()
+                    }
+
+                    form.classList.add('was-validated')
+                }, false)
+            })
+    })()
+</script>
+</body>
+</html>
