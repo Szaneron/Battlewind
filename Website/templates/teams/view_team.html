@@ -63,6 +63,11 @@
                 {% if team.createdBy == request.user %}
                     <div class="card-footer">
                         <a href="" class="btn text-white" data-bs-toggle="modal"
+                           data-bs-target="#exampleModal2"
+                           style="float: left">
+                            <i class="bi bi-person-x"></i> Usuń członka
+                        </a>
+                        <a href="" class="btn text-white" data-bs-toggle="modal"
                            data-bs-target="#exampleModal"
                            style="float: right">
                             <i class="bi bi-gear-fill"></i> Edytuj drużynę
@@ -85,12 +90,37 @@
                                             </div>
                                         </div>
                                         <div class="col-12">
-                                            <button class="btn bg-dark w-25 text-white mt-2" type="submit"
+                                            <button class="btn bg-dark text-white mt-2" type="submit"
                                                     name="update">Zatwierdź
                                             </button>
                                         </div>
                                     </form>
 
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal fade" id="exampleModal2" tabindex="-1" aria-labelledby="exampleModalLabel"
+                             aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content bg-warning text-black text-center">
+                                    <h3 class="mt-3">Usuwanie członka drużyny</h3>
+                                    <form class="row g-3 needs-validation m-4" novalidate method="post">
+                                        {% csrf_token %}
+                                        <div class="col-md-12">
+                                            <label for="validationCustom01" class="form-label">Wpisz nazwę użytkownika
+                                                którego chcesz usunąć:</label>
+                                            <input type="text" class="form-control" id="validationCustom01" required
+                                                   name="username">
+                                            <div class="invalid-feedback">
+                                                Wprowadź nazwę użytkownika
+                                            </div>
+                                        </div>
+                                        <div class="col-12">
+                                            <button class="btn bg-dark text-white mt-2" type="submit"
+                                                    name="delete_member">Zatwierdź
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
                         </div>

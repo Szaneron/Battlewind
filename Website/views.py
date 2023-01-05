@@ -179,6 +179,22 @@ def view_team(request, team_id):
                 return redirect('view_team', team_id=team_id)
             else:
                 messages.error(request, 'Wprowadzona nazwa jest juz zajęta')
+        if 'delete_member' in request.POST:
+            try:
+                user = User.objects.get(username=request.POST.get('username'))
+                if team.members.filter(teams__members__in=[user.id]):
+                    team.members.remove(user.id)
+                    team.save()
+
+                    invitations = Invitation.objects.filter(team=team, email=user.email)
+                    if invitations:
+                        Invitation.objects.filter(team=team, email=user.email).delete()
+
+                    messages.success(request, 'Usunięto użytkownika')
+                else:
+                    messages.error(request, 'Użytkownik nie znajduje sie w drużynie')
+            except:
+                messages.error(request, 'Nie ma takiego użytkownika')
 
     return render(request, 'teams/view_team.html', context)
 
