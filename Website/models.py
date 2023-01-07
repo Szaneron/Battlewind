@@ -51,3 +51,26 @@ class Invitation(models.Model):
 
     def __str__(self):
         return self.email
+
+
+class Organizer(models.Model):
+    name = models.CharField(max_length=100)
+    image = models.ImageField(default='default_image_organizer.png', null=True, blank=True)
+
+    def __str__(self):
+        return self.name
+
+
+class Tournament(models.Model):
+    name = models.CharField(max_length=100)
+    description = models.TextField(max_length=500)
+    organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, null=True)
+    image = models.ImageField(default='default_image_tournament.png', null=True, blank=True)
+    date = models.DateField(null=True)
+    time = models.TimeField(null=True)
+    server = models.CharField(max_length=10)
+    registeredTeams = models.ManyToManyField(Team, related_name='registeredTeams', blank=True)
+    maxTeams = models.IntegerField()
+
+    def __str__(self):
+        return self.name

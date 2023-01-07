@@ -1,3 +1,5 @@
+import datetime
+
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -8,7 +10,7 @@ import random
 
 from .decorators import unauthenticated_user
 from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm
-from .models import Profile, Team, Invitation
+from .models import *
 from .utilities import send_invitation, send_invitation_accepted
 
 
@@ -295,5 +297,14 @@ def accept_invitation(request):
 
 
 def show_tournaments(request):
-    context = {}
+    tournaments = Tournament.objects.all()
+    context = {'tournaments': tournaments}
+
     return render(request, 'tournaments/tournaments.html', context)
+
+
+def details_tournament(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    context = {'tournament': tournament}
+
+    return render(request, 'tournaments/tournament_view.html', context)
