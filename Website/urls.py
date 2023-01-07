@@ -17,6 +17,7 @@ urlpatterns = [
     path('profile/team/accept_invitation/', accept_invitation, name='accept_invitation'),
     path('torunaments/', show_tournaments, name='tournament'),
     path('torunaments/view/<int:tournament_id>/', details_tournament, name='details_tournament'),
+    path('torunaments/view/<int:tournament_id>/teams/', show_tournament_teams, name='teams_in_tournament'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

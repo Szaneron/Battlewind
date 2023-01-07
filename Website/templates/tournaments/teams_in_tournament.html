@@ -56,50 +56,33 @@
     </div>
     <hr>
     <div class="row m-3">
-        <div class="col-md-6" style="text-align: justify">
-            <h4>Opis turnieju:</h4>
-            <span>{{ tournament.description }}</span>
-        </div>
+        <div class="col-md-3"></div>
         <div class="col-md-6">
-            <div class="row p-2">
-                <div class="col-md-6">
-                    <div class="card text-center bg-warning text-dark p-2">
-                        <h5><b>Region</b></h5>
-                        <span>{{ tournament.server }}</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card text-center bg-warning text-dark p-2">
-                        <h5><b>Format</b></h5>
-                        <span>5 vs 5</span>
-                    </div>
-                </div>
-            </div>
-            <div class="row p-2">
-                <div class="col-md-6">
-                    <div class="card text-center bg-warning text-dark p-2">
-                        <h5><b>Mapa</b></h5>
-                        <span>Summoner's Rift</span>
-                    </div>
-                </div>
-                <div class="col-md-6">
-                    <div class="card text-center bg-warning text-dark p-2">
-                        <h5><b>Tryb</b></h5>
-                        <span>Draft turniejowy</span>
-                    </div>
-                </div>
-            </div>
+            <h4 class="text-center">Drużyny zapisane do turnieju:</h4>
+            <ol class="list-group list-group-numbered">
+                {% for team in tournament.registeredTeams.all %}
+                    <li class="list-group-item  text-white bg-dark border-1 border-warning">
+                        <b>{{ team }}</b>
+                        {% if team in teams %}
+                            <a href="" type="button" id="dropdownMenuButton1" data-bs-toggle="dropdown"
+                               aria-expanded="false" style="float:right"><i
+                                    class="bi bi-three-dots text-warning"></i></a>
+                            <ul class="dropdown-menu bg-warning" aria-labelledby="dropdownMenu1">
+                                <form action="" method="post" class="text-center">
+                                    {% csrf_token %}
+                                    <li>
+                                        <button class="btn btn-sm" type="submit" name="leave"><i
+                                                class="bi bi-x-circle"></i> Opuść turniej
+                                        </button>
+                                    </li>
+                                </form>
+                            </ul>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+            </ol>
         </div>
-    </div>
-    <hr>
-
-    <div class="row m-3">
-        <div class="col-6" style="font-size: 14px">
-            <h5>Organizator:</h5>
-            <img class="d-inline-flex rounded-circle d-block" style="width: 50px; height: 50px"
-                 src="{{ tournament.organizer.image.url }}">
-            <h6 class="d-inline-flex p-2">{{ tournament.organizer }}</h6>
-        </div>
+        <div class="col-md-3"></div>
     </div>
 
     <div class="modal fade text-center" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"

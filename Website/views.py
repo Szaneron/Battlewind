@@ -305,6 +305,64 @@ def show_tournaments(request):
 
 def details_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
-    context = {'tournament': tournament}
+    teams = Team.objects.filter(createdBy=request.user)
+    context = {'tournament': tournament, 'teams': teams}
+
+    def check_teams():
+        teamsInTournament = 0
+        for _ in teams:
+            if tournament.registeredTeams.filter(registeredTeams__registeredTeams=_.id):
+                teamsInTournament += 1
+        return teamsInTournament
+
+    teamsInTournament = check_teams()
+
+    if request.method == 'POST':
+        if 'join' in request.POST:
+            team = Team.objects.get(teamName=request.POST.get('teamName'))
+            if teamsInTournament == 0:
+                if tournament.registeredTeams.count() < tournament.maxTeams:
+                    tournament.registeredTeams.add(team.id)
+                    tournament.save()
+                    messages.success(request, "Drużyna dołączyła do turnieju")
+                else:
+                    messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+            else:
+                messages.error(request, 'Zapisałeś już jedną swoją drużynę')
 
     return render(request, 'tournaments/tournament_view.html', context)
+
+
+def show_tournament_teams(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    teams = Team.objects.filter(createdBy=request.user)
+
+    def check_teams():
+        teamInfo = ['name', 0]
+        for _ in teams:
+            if tournament.registeredTeams.filter(registeredTeams__registeredTeams=_.id):
+                teamInfo[0] = _
+                teamInfo[1] = 1
+        return teamInfo
+
+    if request.method == 'POST':
+        if 'leave' in request.POST:
+            teamName = check_teams()[0]
+            tournament.registeredTeams.remove(teamName.id)
+
+        if 'join' in request.POST:
+            team = Team.objects.get(teamName=request.POST.get('teamName'))
+            teamInTournament = check_teams()[1]
+            if teamInTournament == 0:
+                if tournament.registeredTeams.count() < tournament.maxTeams:
+                    tournament.registeredTeams.add(team.id)
+                    tournament.save()
+                    messages.success(request, "Drużyna dołączyła do turnieju")
+                else:
+                    messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+            else:
+                messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+
+    context = {'tournament': tournament, 'teams': teams}
+
+    return render(request, 'tournaments/teams_in_tournament.html', context)
