@@ -62,14 +62,24 @@ class Organizer(models.Model):
 
 
 class Tournament(models.Model):
+    # Status
+    IN_PROGRESS = 'in_progress'
+    COMPLETED = 'completed'
+
+    CHOICES_STATUS = (
+        (IN_PROGRESS, 'In_progress'),
+        (COMPLETED, 'Completed')
+    )
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=500)
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, null=True)
     image = models.ImageField(default='default_image_tournament.png', null=True, blank=True)
-    dateTime = models.DateTimeField(null=True)
+    date = models.DateField(null=True)
+    time = models.TimeField(null=True)
     server = models.CharField(max_length=10)
     registeredTeams = models.ManyToManyField(Team, related_name='registeredTeams', blank=True)
     maxTeams = models.IntegerField()
+    status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=IN_PROGRESS)
 
     def __str__(self):
         return self.name

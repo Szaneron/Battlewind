@@ -7,7 +7,8 @@ from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib.auth.models import Group, User
 from django.shortcuts import render, redirect, get_object_or_404
 import random
-from datetime import timedelta
+from datetime import timedelta, date, datetime, time
+import pandas as pd
 from pytz import timezone
 from django.utils import timezone
 from .decorators import unauthenticated_user
@@ -299,7 +300,7 @@ def accept_invitation(request):
 
 
 def show_tournaments(request):
-    tournaments = Tournament.objects.all()
+    tournaments = Tournament.objects.filter(status='in_progress').order_by('time' and 'date')
     context = {'tournaments': tournaments}
 
     return render(request, 'tournaments/tournaments.html', context)
@@ -308,14 +309,6 @@ def show_tournaments(request):
 def details_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
-    dateTime = tournament.dateTime.strftime("%d-%m-%Y %H:%M:%S")
-    dateTime = tournament.dateTime.strptime(dateTime, "%d-%m-%Y %H:%M:%S") + timedelta(hours=1)
-    dateTime = dateTime.strftime("%d-%m-%Y %H:%M:%S")
-    dateTime = dateTime.split()
-    date = dateTime[0]
-    time = dateTime[1]
-
-    context = {'tournament': tournament, 'teams': teams, 'date': date, 'time': time}
 
     def check_teams():
         teamsInTournament = 0
@@ -324,12 +317,21 @@ def details_tournament(request, tournament_id):
                 teamsInTournament += 1
         return teamsInTournament
 
+    dateTime = tournament.date.strftime("%d-%m-%Y")
+    hourTime = tournament.time.strftime("%H:%M:%S")
+    currentDate = date.today()
+    currentDate = pd.to_datetime(currentDate).date()
+    currentDate = currentDate.strftime("%d-%m-%Y")
+    currentTime = datetime.now()
+    currentTime = pd.to_datetime(currentTime).time()
+    currentTime = currentTime.strftime("%H:%M:%S")
+
     teamsInTournament = check_teams()
 
     if request.method == 'POST':
         if 'join' in request.POST:
-            now = timezone.now()
-            if now < tournament.dateTime:
+
+            if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 if teamsInTournament == 0:
                     if tournament.registeredTeams.count() < tournament.maxTeams:
@@ -343,19 +345,21 @@ def details_tournament(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
+    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime}
     return render(request, 'tournaments/tournament_view.html', context)
 
 
 def show_tournament_teams(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
-    now = timezone.now()
-    dateTime = tournament.dateTime.strftime("%d-%m-%Y %H:%M:%S")
-    dateTime = tournament.dateTime.strptime(dateTime, "%d-%m-%Y %H:%M:%S") + timedelta(hours=1)
-    dateTime = dateTime.strftime("%d-%m-%Y %H:%M:%S")
-    dateTime = dateTime.split()
-    date = dateTime[0]
-    time = dateTime[1]
+    dateTime = tournament.date.strftime("%d-%m-%Y")
+    hourTime = tournament.time.strftime("%H:%M:%S")
+    currentDate = date.today()
+    currentDate = pd.to_datetime(currentDate).date()
+    currentDate = currentDate.strftime("%d-%m-%Y")
+    currentTime = datetime.now()
+    currentTime = pd.to_datetime(currentTime).time()
+    currentTime = currentTime.strftime("%H:%M:%S")
 
     def check_teams():
         teamInfo = ['name', 0]
@@ -367,7 +371,7 @@ def show_tournament_teams(request, tournament_id):
 
     if request.method == 'POST':
         if 'leave' in request.POST:
-            if now < tournament.dateTime:
+            if currentDate <= dateTime and currentTime < hourTime:
                 teamName = check_teams()[0]
                 tournament.registeredTeams.remove(teamName.id)
                 messages.success(request, 'Drużyna wypisana z turnieju')
@@ -376,7 +380,7 @@ def show_tournament_teams(request, tournament_id):
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości opuszczenia')
 
         if 'join' in request.POST:
-            if now < tournament.dateTime:
+            if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 teamInTournament = check_teams()[1]
                 if teamInTournament == 0:
@@ -391,6 +395,6 @@ def show_tournament_teams(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
-    context = {'tournament': tournament, 'teams': teams, 'date': date, 'time': time}
+    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime}
 
     return render(request, 'tournaments/teams_in_tournament.html', context)
