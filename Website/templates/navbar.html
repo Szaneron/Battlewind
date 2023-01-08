@@ -57,11 +57,11 @@
                            data-bs-toggle="dropdown" aria-expanded="false">
                             {{ request.user }}
                         </a>
-                        <ul class="dropdown-menu text-center" aria-labelledby="navbarDropdown">
-                            <li><a href="{% url 'profile' %}" class="dropdown-item">Profil</a></li>
-                            <li><a href="{% url 'profile_settings' %}" class="dropdown-item">Ustawienia</a></li>
-                            <li><a href="{% url 'accept_invitation' %}" class="dropdown-item">Zaproszenia</a></li>
-                            <li><a href="{% url 'logout' %}" class="dropdown-item">Wyloguj</a></li>
+                        <ul class="dropdown-menu text-center bg-warning" aria-labelledby="navbarDropdown">
+                            <li><a href="{% url 'profile' %}" class="dropdown-item btn">Profil</a></li>
+                            <li><a href="{% url 'profile_settings' %}" class="dropdown-item btn">Ustawienia</a></li>
+                            <li><a href="{% url 'accept_invitation' %}" class="dropdown-item btn">Zaproszenia</a></li>
+                            <li><a href="{% url 'logout' %}" class="dropdown-item btn">Wyloguj</a></li>
                         </ul>
                     </li>
                 {% else %}
