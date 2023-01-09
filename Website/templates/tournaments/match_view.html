@@ -10,6 +10,69 @@
 <body style="background-color: #16181b">
 
 {% include 'navbar.html' %}
-zxcvzxczx
+<div class="container text-white min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+    {% include 'messages.html' %}
+    <h1 class="text-center text-warning"><b>{{ match.matchName }}</b></h1>
+
+    <div class="row m-3">
+        <div class="col-md-6 pt-3">
+            <div class="card p-2" style="background-color: #ffcd38">
+                <h4 class="text-center text-dark"><b>{{ teamBlue }}</b></h4>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8 d-flex">
+                        <ul class="list-group text-center w-50">
+                            {% for member in teamBlue.members.all %}
+                                <li class="list-group-item list-group-item-primary">{{ member }}</li>
+                            {% endfor %}
+                        </ul>
+                        <ul class="list-group text-center w-50">
+                            {% for user in blueUsers %}
+                                <li class="list-group-item list-group-item-dark">{{ user.profile.summonerName }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="col-sm-2"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-6 pt-3">
+            <div class="card p-2" style="background-color: #ffcd38">
+                <h3 class="text-center text-dark"><b>{{ teamRed }}</b></h3>
+                <div class="row">
+                    <div class="col-sm-2"></div>
+                    <div class="col-sm-8 d-flex">
+                        <ul class="list-group text-center w-50">
+                            {% for member in teamRed.members.all %}
+                                <li class="list-group-item list-group-item-primary">{{ member }}</li>
+                            {% endfor %}
+                        </ul>
+                        <ul class="list-group text-center w-50">
+                            {% for user in redUsers %}
+                                <li class="list-group-item list-group-item-dark">{{ user.profile.summonerName }}</li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+
+                    <div class="col-sm-2"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="row pt-3">
+        <div class="col-md-3"></div>
+        <div class="col-md-6 text-center">
+            <p class="text-center"> Prześlij plik png z tabeli podsumowywującej rozgrywkę:</p>
+            <form method="POST" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button class="btn btn-warning text-center" type="submit">Prześlij</button>
+            </form>
+        </div>
+        <div class="col-md-3"></div>
+    </div>
+    <img src=" {{ match.afterGameImage.url }}" alt="">
+</div>
 </body>
 </html>

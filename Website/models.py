@@ -98,3 +98,4 @@ class Match(models.Model):
     teamsInMatch = models.ManyToManyField(Team, related_name='teamsInMatch', blank=True)
     winner = models.CharField(max_length=100, null=True, blank=True)
     status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=ACTIVE)
+    afterGameImage = models.ImageField(null=True, blank=True, upload_to='Website/static/images/gamesEnds')

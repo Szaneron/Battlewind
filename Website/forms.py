@@ -24,3 +24,17 @@ class CreateTeamForm(ModelForm):
     class Meta:
         model = Team
         fields = ['teamName']
+
+
+class UploadImageToVeryficate(ModelForm):
+    class Meta:
+        model = Match
+        fields = ['afterGameImage']
+
+        widgets = {
+            'afterGameImage': forms.FileInput(attrs={'class': 'form-control', 'label': ''})
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['afterGameImage'].label = ''

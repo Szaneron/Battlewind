@@ -13,7 +13,7 @@ import pandas as pd
 from pytz import timezone
 from django.utils import timezone
 from .decorators import unauthenticated_user
-from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm
+from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm, UploadImageToVeryficate
 from .models import *
 from .utilities import send_invitation, send_invitation_accepted
 from asgiref.sync import async_to_sync
@@ -451,12 +451,12 @@ def show_tournament_bracket(request, tournament_id):
 
             if tournament.registeredTeams:
                 for team1, team2 in grouped(tournamentTeamList, 2):
-
                     matchExsist = Match.objects.filter(
                         teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id])
 
                     if not matchExsist:
-                        teams = Match.objects.create(tournamentName=tournament)
+                        matchName = str(team1) + ' vs ' + str(team2)
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
                         teams.teamsInMatch.add(team1, team2)
                         teams.save
 
@@ -505,6 +505,26 @@ def show_tournament_bracket(request, tournament_id):
 def show_match_in_tournament(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
 
-    context = {'match': match}
+    teamNames = [team for team in match.teamsInMatch.all()]
+    teamNamesList = [team.teamName for team in teamNames]
+    teamBlue = Team.objects.get(teamName=teamNamesList[0])
+    teamRed = Team.objects.get(teamName=teamNamesList[1])
+    blueUsers = User.objects.filter(teams__teamName=teamNamesList[0])
+    print(blueUsers)
+    redUsers = User.objects.filter(teams__teamName=teamNamesList[1])
+    print(redUsers)
+    print(teamNamesList)
+    form = UploadImageToVeryficate(instance=Match)
+    if match.status == 'active':
+        if request.method == 'POST':
+            form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
+            if form.is_valid():
+                form.save()
+                messages.success(request, 'Zrzut ekranu został wysłany')
+    else:
+        messages.error(request, 'Gra zakończona')
+
+    context = {'form': form, 'match': match, 'teamBlue': teamBlue, 'teamRed': teamRed, 'blueUsers': blueUsers,
+               'redUsers': redUsers}
 
     return render(request, 'tournaments/match_view.html', context)
