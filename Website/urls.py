@@ -18,6 +18,8 @@ urlpatterns = [
     path('torunaments/', show_tournaments, name='tournament'),
     path('torunaments/view/<int:tournament_id>/', details_tournament, name='details_tournament'),
     path('torunaments/view/<int:tournament_id>/teams/', show_tournament_teams, name='teams_in_tournament'),
+    path('torunaments/view/<int:tournament_id>/bracket/', show_tournament_bracket, name='bracket_in_tournament'),
+    path('torunaments/view/match/<int:match_id>/', show_match_in_tournament, name='show_match_in_tournament'),
 ]
 
 urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

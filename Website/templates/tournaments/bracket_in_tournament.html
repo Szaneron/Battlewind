@@ -1,0 +1,156 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" type="text/css" href="{% static  'js/jquery.bracket.min.css' %}"/>
+    <title>Title</title>
+</head>
+<body style="background-color: #16181b">
+
+{% include 'navbar.html' %}
+<div class="container min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+    {% include 'messages.html' %}
+    <div class="row d-flex align-items-center bg-warning m-3 rounded-5">
+        <div class="col-md-3">
+            <img class="rounded mx-auto d-block align-middle" src="{{ tournament.image.url }}"
+                 style="max-height: 125px; max-width: 125px">
+        </div>
+        <div class="col-md-9">
+            <h1 class="text-center text-dark">{{ tournament.name }}</h1>
+        </div>
+    </div>
+
+    <div class="row text-center text-white m-3">
+        <div class="col-6">
+            <h5>Data: <b>{{ dateTime }}</b></h5>
+        </div>
+        <div class="col-6">
+            <h5>Godzina: <b> {{ hourTime }}</b></h5>
+        </div>
+    </div>
+    <hr>
+    <div class="row m-3 list-group-horizontal align-items-center" style="font-size: large">
+        <div class="col-md-6">
+            <ul class="list-group list-group-horizontal">
+                <li class="list-group-item bg-warning border-0"><a href="{% url 'details_tournament' tournament.id %}"
+                                                                   class="text-dark"
+                                                                   style="text-decoration: none">Przegląd</a>
+                </li>
+                <li class="list-group-item bg-warning border-0"><a href="{% url 'teams_in_tournament' tournament.id %}"
+                                                                   class="text-dark"
+                                                                   style="text-decoration: none">Drużyny</a></li>
+                <li class="list-group-item bg-warning border-0"><a
+                        href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
+                        style="text-decoration: none">Drabinka</a></li>
+            </ul>
+        </div>
+        <div class="col-md-4 text-white">
+            <h5>Zapisane druzyny: {{ tournament.registeredTeams.count }} / {{ tournament.maxTeams }}</h5>
+        </div>
+        <div class="col-md-2">
+            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">
+                Zapisz się!
+            </button>
+        </div>
+    </div>
+    <hr>
+    {% if matches.count == 0 %}
+        <a href="{% url 'bracket_in_tournament' tournament.id %}" class="btn btn-warning">Pokaż drabinkę</a>
+    {% endif %}
+    <div class="row">
+        <div class="col-md-12 text-white text-center">
+            {% if matchObject.status == 'active' %}
+                <a href="{% url 'show_match_in_tournament' matchObject.id %}" class="btn btn-success"><h4>Przejdź do
+                    swojego
+                    meczu</h4></a>
+            {% endif %}
+        </div>
+    </div>
+
+    <span id="matchCallback"></span>
+
+
+    <div class="bracket-view">
+
+    </div>
+
+
+    <script type="text/javascript" src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.bracket.min.js' %}"></script>
+
+    <script type="text/javascript">
+        var teams =
+        {{ teamList|safe }}
+
+
+        var matchData = {
+            teams: [
+                [teams[0], teams[1]],
+                [teams[2], teams[3]]
+            ],
+            results: [
+                [[], []],
+                [[], []]
+            ]
+        }
+
+        {#results: [#}
+        {#        [[4, 3, 'Match 1'], [3, 4, 'Match 2']],#}
+        {#        [[8, 6, 'Final'], [2, 3, 'Consolation final']]#}
+        {#    ]#}
+        // Bracket Function
+        function Bracket() {
+            var BracketWidth = $('.bracket-view').width() - 80;
+            var NbSlots = 4;
+            var NbRound = Math.log(NbSlots) / Math.log(2);
+            if (NbSlots < 32) {
+                if (BracketWidth < 768) {
+                    var RoundMargin = 25;
+                    var ScoreWidth = 25;
+                    var MatchMargin = 60;
+                } else {
+                    var RoundMargin = 80;
+                    var ScoreWidth = 40;
+                    var MatchMargin = 100;
+                }
+            } else {
+                if (BracketWidth < 768) {
+                    var RoundMargin = 25;
+                    var ScoreWidth = 25;
+                    var MatchMargin = 20;
+                } else {
+                    var RoundMargin = 55;
+                    var ScoreWidth = 25;
+                    var MatchMargin = 60;
+                }
+            }
+
+            // Parameters
+            var BracketParameters = {
+                skipConsolationRound: true,
+                teamWidth: 150,
+                scoreWidth: ScoreWidth,
+                matchMargin: MatchMargin,
+                roundMargin: RoundMargin,
+                init: matchData
+            }
+            $('.bracket-view').bracket(BracketParameters);
+        }
+
+        // Render bracket
+        $(Bracket)
+
+        // Resize when windows are resize
+        $(window).bind('resize', function () {
+            // Render bracket
+            $(Bracket)
+        });
+    </script>
+</div>
+</body>
+</html>

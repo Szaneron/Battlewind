@@ -41,8 +41,9 @@
                 <li class="list-group-item bg-warning border-0"><a href="{% url 'teams_in_tournament' tournament.id %}"
                                                                    class="text-dark"
                                                                    style="text-decoration: none">Drużyny</a></li>
-                <li class="list-group-item bg-warning border-0"><a href="#" class="text-dark"
-                                                                   style="text-decoration: none">Drabinka</a></li>
+                <li class="list-group-item bg-warning border-0">
+                    <a href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
+                       style="text-decoration: none">Drabinka</a></li>
             </ul>
         </div>
         <div class="col-md-4">

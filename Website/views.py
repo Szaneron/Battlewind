@@ -1,4 +1,5 @@
 import datetime
+import json
 
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
@@ -15,6 +16,7 @@ from .decorators import unauthenticated_user
 from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm
 from .models import *
 from .utilities import send_invitation, send_invitation_accepted
+from asgiref.sync import async_to_sync
 
 
 # from django.contrib.auth.decorators import login_required
@@ -398,3 +400,111 @@ def show_tournament_teams(request, tournament_id):
     context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime}
 
     return render(request, 'tournaments/teams_in_tournament.html', context)
+
+
+# def create_tournament_matches(tournament_id):
+#     tournament = get_object_or_404(Tournament, pk=tournament_id)
+#
+#     teamList = [tournament for tournament in tournament.registeredTeams.all()]
+#     print(teamList)
+#     random.shuffle(teamList)
+#     print(teamList)
+#
+#     def grouped(iterable, n):
+#         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
+#         return zip(*[iter(iterable)] * n)
+#
+#     if tournament.registeredTeams:
+#         for team1, team2 in grouped(teamList, 2):
+#             print(team1.id)
+#             print(team2.id)
+#             print("----")
+#             teams = Match.objects.create(tournamentName=tournament.id)
+#             teams.teamsInMatch.add(team1, team2)
+#             teams.save
+
+
+def show_tournament_bracket(request, tournament_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
+    matches = Match.objects.filter(tournamentName=tournament.id)
+    teams = Team.objects.filter(createdBy=request.user)
+
+    dateTime = tournament.date.strftime("%d-%m-%Y")
+    hourTime = tournament.time.strftime("%H:%M:%S")
+    currentDate = date.today()
+    currentDate = pd.to_datetime(currentDate).date()
+    currentDate = currentDate.strftime("%d-%m-%Y")
+    currentTime = datetime.now()
+    currentTime = pd.to_datetime(currentTime).time()
+    currentTime = currentTime.strftime("%H:%M:%S")
+
+    if currentDate <= dateTime and currentTime < hourTime:
+        messages.error(request, 'Drabinka nie jest jeszcze gotowa, poczekaj na rozpoczęcie turnieju')
+    else:
+        if not matches:
+            tournament = get_object_or_404(Tournament, pk=tournament_id)
+            tournamentTeamList = [tournament for tournament in tournament.registeredTeams.all()]
+
+            def grouped(iterable, n):
+                "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
+                return zip(*[iter(iterable)] * n)
+
+            if tournament.registeredTeams:
+                for team1, team2 in grouped(tournamentTeamList, 2):
+
+                    matchExsist = Match.objects.filter(
+                        teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id])
+
+                    if not matchExsist:
+                        teams = Match.objects.create(tournamentName=tournament)
+                        teams.teamsInMatch.add(team1, team2)
+                        teams.save
+
+        else:
+            def get_team_registered_by_user():
+                for name in teams:
+                    if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
+                        teamRegisteredByUser = name
+
+                    return teamRegisteredByUser
+
+            teamRegisteredByUser = get_team_registered_by_user()
+
+            def get_match_object():
+                for match in matches:
+                    if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id):
+                        matchObject = match
+                    return matchObject
+
+            matchObject = get_match_object()
+
+            def get_team_list():
+                teams = []
+
+                for team in range(4):
+                    for team in tournament.registeredTeams.all():
+                        print(team.teamName)
+                        teams.append(team.teamName)
+                    else:
+                        teams.append(None)
+                    return teams
+
+            teamList = get_team_list()
+            print(teamList)
+            teamList = json.dumps(teamList)
+
+            context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime,
+                       'teamList': teamList,
+                       'teamRegisteredByUser': teamRegisteredByUser, 'matchObject': matchObject}
+
+            return render(request, 'tournaments/bracket_in_tournament.html', context)
+    context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime, 'matches': matches}
+    return render(request, 'tournaments/bracket_in_tournament.html', context)
+
+
+def show_match_in_tournament(request, match_id):
+    match = get_object_or_404(Match, pk=match_id)
+
+    context = {'match': match}
+
+    return render(request, 'tournaments/match_view.html', context)

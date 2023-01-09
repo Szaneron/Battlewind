@@ -83,3 +83,18 @@ class Tournament(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Match(models.Model):
+    ACTIVE = 'active'
+    END = 'end'
+
+    CHOICES_STATUS = (
+        (ACTIVE, 'Active'),
+        (END, 'End')
+    )
+    tournamentName = models.ForeignKey(Tournament, on_delete=models.CASCADE)
+    matchName = models.CharField(max_length=200, default='vs')
+    teamsInMatch = models.ManyToManyField(Team, related_name='teamsInMatch', blank=True)
+    winner = models.CharField(max_length=100, null=True, blank=True)
+    status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=ACTIVE)
