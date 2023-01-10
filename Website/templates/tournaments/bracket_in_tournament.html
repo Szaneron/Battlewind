@@ -70,7 +70,7 @@
     <div class="row d-flex align-items-center">
         <div class="col-md-12 text-white text-center ">
             {% if matchObject.status == 'active' %}
-                <a href="{% url 'show_match_in_tournament' matchObject.id %}" class="btn btn-success">
+                <a href="{% url 'show_match_in_tournament' tournament.id matchObject.id %}" class="btn btn-success">
                     <h4>Przejdź do swojego meczu</h4>
                 </a>
             {% endif %}

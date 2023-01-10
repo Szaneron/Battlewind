@@ -7,7 +7,7 @@ from django.db import models
 class Profile(models.Model):
     user = models.OneToOneField(User, null=True, blank=True, on_delete=models.CASCADE)
     summonerName = models.CharField(max_length=30, null=True, blank=True, unique=True)
-    profilePic = models.ImageField(default='default_image.png', null=True, blank=True)
+    profilePic = models.ImageField(default='default_image.png', null=True, blank=True, upload_to='profiles_images')
     gamesPlayed = models.IntegerField(default=0, null=False)
     gamesWon = models.IntegerField(default=0, null=False)
     gamesLost = models.IntegerField(default=0, null=False)
@@ -55,7 +55,8 @@ class Invitation(models.Model):
 
 class Organizer(models.Model):
     name = models.CharField(max_length=100)
-    image = models.ImageField(default='default_image_organizer.png', null=True, blank=True)
+    image = models.ImageField(default='default_image_organizer.png', null=True, blank=True,
+                              upload_to='organizers_images')
 
     def __str__(self):
         return self.name
@@ -73,7 +74,8 @@ class Tournament(models.Model):
     name = models.CharField(max_length=100)
     description = models.TextField(max_length=500)
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, null=True)
-    image = models.ImageField(default='default_image_tournament.png', null=True, blank=True)
+    image = models.ImageField(default='default_image_tournament.png', null=True, blank=True,
+                              upload_to='tournaments_images')
     date = models.DateField(null=True)
     time = models.TimeField(null=True)
     server = models.CharField(max_length=10)
@@ -87,15 +89,17 @@ class Tournament(models.Model):
 
 class Match(models.Model):
     ACTIVE = 'active'
-    END = 'end'
+    COMPLETED = 'completed'
 
     CHOICES_STATUS = (
         (ACTIVE, 'Active'),
-        (END, 'End')
+        (COMPLETED, 'Completed')
     )
     tournamentName = models.ForeignKey(Tournament, on_delete=models.CASCADE)
     matchName = models.CharField(max_length=200, default='vs')
     teamsInMatch = models.ManyToManyField(Team, related_name='teamsInMatch', blank=True)
     winner = models.CharField(max_length=100, null=True, blank=True)
+    pointBlue = models.IntegerField(default=0)
+    pointRed = models.IntegerField(default=0)
     status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=ACTIVE)
-    afterGameImage = models.ImageField(null=True, blank=True, upload_to='Website/static/images/gamesEnds')
+    afterGameImage = models.ImageField(null=True, blank=True, upload_to='matchEnds_images')

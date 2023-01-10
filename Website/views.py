@@ -1,6 +1,9 @@
 import datetime
 import json
-
+from urllib.parse import quote
+import cv2
+import urllib
+import pytesseract
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -17,6 +20,7 @@ from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm, 
 from .models import *
 from .utilities import send_invitation, send_invitation_accepted
 from asgiref.sync import async_to_sync
+from Website import image_verification
 
 
 # from django.contrib.auth.decorators import login_required
@@ -213,34 +217,36 @@ def invite(request, team_id):
         if request.method == 'POST':
             email = request.POST.get('email')
             user = User.objects.get(email__exact=email)
-
             if email:
-                invitations = Invitation.objects.filter(team=team, email=email)
+                if user.profile.summonerName != None:
+                    invitations = Invitation.objects.filter(team=team, email=email)
 
-                if not invitations:
-                    code = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz123456789') for _ in range(4))
-                    status = 'Invited'
-                    Invitation.objects.create(team=team, email=email, code=code, user=user, status=status)
-
-                    messages.info(request, 'Zaproszenie zsotało wysłane')
-                    send_invitation(email, code, team)
-
-                    return redirect('view_team', team_id=team_id)
-                if invitations:
-                    if invitations.filter(status=Invitation.CANCELLED) or invitations.filter(
-                            status=Invitation.DECLINED):
+                    if not invitations:
                         code = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz123456789') for _ in range(4))
                         status = 'Invited'
-                        Invitation.objects.update(team=team, email=email, code=code, user=user, status=status)
+                        Invitation.objects.create(team=team, email=email, code=code, user=user, status=status)
 
                         messages.info(request, 'Zaproszenie zsotało wysłane')
                         send_invitation(email, code, team)
 
                         return redirect('view_team', team_id=team_id)
-                    if invitations.filter(status=Invitation.ACCEPTED):
-                        messages.error(request, 'Użytkownik znajduje się już w drużynie')
-                    else:
-                        messages.error(request, 'Użytkownik został już wcześniej zaproszony')
+                    if invitations:
+                        if invitations.filter(status=Invitation.CANCELLED) or invitations.filter(
+                                status=Invitation.DECLINED):
+                            code = ''.join(random.choice('abcdefghijklmnopqrstuvwxyz123456789') for _ in range(4))
+                            status = 'Invited'
+                            Invitation.objects.update(team=team, email=email, code=code, user=user, status=status)
+
+                            messages.info(request, 'Zaproszenie zsotało wysłane')
+                            send_invitation(email, code, team)
+
+                            return redirect('view_team', team_id=team_id)
+                        if invitations.filter(status=Invitation.ACCEPTED):
+                            messages.error(request, 'Użytkownik znajduje się już w drużynie')
+                        else:
+                            messages.error(request, 'Użytkownik został już wcześniej zaproszony')
+                else:
+                    messages.error(request, "Użytkownik musi podać nazwę przywoływacza w swoim profilu")
     except:
         messages.error(request, 'Błędny adres e-mail')
     return render(request, 'teams/invite.html', {'team': team})
@@ -384,16 +390,19 @@ def show_tournament_teams(request, tournament_id):
         if 'join' in request.POST:
             if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
-                teamInTournament = check_teams()[1]
-                if teamInTournament == 0:
-                    if tournament.registeredTeams.count() < tournament.maxTeams:
-                        tournament.registeredTeams.add(team.id)
-                        tournament.save()
-                        messages.success(request, "Drużyna dołączyła do turnieju")
-                    else:
-                        messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+                if team.members.count() != 5:
+                    messages.error(request, 'Drużyna nie posaida 5 zawodników')
                 else:
-                    messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+                    teamInTournament = check_teams()[1]
+                    if teamInTournament == 0:
+                        if tournament.registeredTeams.count() < tournament.maxTeams:
+                            tournament.registeredTeams.add(team.id)
+                            tournament.save()
+                            messages.success(request, "Drużyna dołączyła do turnieju")
+                        else:
+                            messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+                    else:
+                        messages.error(request, 'Zapisałeś już jedną swoją drużynę')
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
@@ -427,7 +436,7 @@ def show_tournament_teams(request, tournament_id):
 def show_tournament_bracket(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     matches = Match.objects.filter(tournamentName=tournament.id)
-    teams = Team.objects.filter(createdBy=request.user)
+    teams = Team.objects.filter(members__in=[request.user])
 
     dateTime = tournament.date.strftime("%d-%m-%Y")
     hourTime = tournament.time.strftime("%H:%M:%S")
@@ -442,7 +451,7 @@ def show_tournament_bracket(request, tournament_id):
         messages.error(request, 'Drabinka nie jest jeszcze gotowa, poczekaj na rozpoczęcie turnieju')
     else:
         if not matches:
-            tournament = get_object_or_404(Tournament, pk=tournament_id)
+            tournament = get_object_or_404(Tournament, pk=tournament.id)
             tournamentTeamList = [tournament for tournament in tournament.registeredTeams.all()]
 
             def grouped(iterable, n):
@@ -452,7 +461,7 @@ def show_tournament_bracket(request, tournament_id):
             if tournament.registeredTeams:
                 for team1, team2 in grouped(tournamentTeamList, 2):
                     matchExsist = Match.objects.filter(
-                        teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id])
+                        teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id], tournamentName=tournament.id)
 
                     if not matchExsist:
                         matchName = str(team1) + ' vs ' + str(team2)
@@ -461,70 +470,120 @@ def show_tournament_bracket(request, tournament_id):
                         teams.save
 
         else:
-            def get_team_registered_by_user():
-                for name in teams:
-                    if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
-                        teamRegisteredByUser = name
-
-                    return teamRegisteredByUser
-
-            teamRegisteredByUser = get_team_registered_by_user()
-
-            def get_match_object():
-                for match in matches:
-                    if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id):
-                        matchObject = match
-                    return matchObject
-
-            matchObject = get_match_object()
-
             def get_team_list():
                 teams = []
 
-                for team in range(4):
-                    for team in tournament.registeredTeams.all():
-                        print(team.teamName)
-                        teams.append(team.teamName)
-                    else:
-                        teams.append(None)
-                    return teams
+                for team in tournament.registeredTeams.all():
+                    print(team.teamName)
+                    teams.append(team.teamName)
+
+                while len(teams) < 4:
+                    teams.append(None)
+
+                return teams
 
             teamList = get_team_list()
             print(teamList)
             teamList = json.dumps(teamList)
 
-            context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime,
-                       'teamList': teamList,
-                       'teamRegisteredByUser': teamRegisteredByUser, 'matchObject': matchObject}
+            def if_team_is_registerd():
+                for name in teams:
+                    if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
+                        return True
+                    else:
+                        return False
 
+            if if_team_is_registerd():
+                def get_team_registered_by_user():
+                    for name in teams:
+                        if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
+                            teamRegisteredByUser = name
+
+                            return teamRegisteredByUser
+
+                teamRegisteredByUser = get_team_registered_by_user()
+
+                def get_match_object():
+                    for match in matches:
+                        if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id):
+                            matchObject = match
+
+                            return matchObject
+
+                matchObject = get_match_object()
+                context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser,
+                           'matchObject': matchObject, 'teamList': teamList, 'dateTime': dateTime, "hourTime": hourTime}
+
+                return render(request, 'tournaments/bracket_in_tournament.html', context)
+
+            context = {'tournament': tournament, 'teamList': teamList}
             return render(request, 'tournaments/bracket_in_tournament.html', context)
+
     context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime, 'matches': matches}
     return render(request, 'tournaments/bracket_in_tournament.html', context)
 
 
-def show_match_in_tournament(request, match_id):
+def show_match_in_tournament(request, tournament_id, match_id):
+    tournament = get_object_or_404(Tournament, pk=tournament_id)
     match = get_object_or_404(Match, pk=match_id)
-
+    requestTeam = Team.objects.filter(createdBy=request.user)
     teamNames = [team for team in match.teamsInMatch.all()]
+    print(teamNames)
     teamNamesList = [team.teamName for team in teamNames]
+    print(teamNamesList)
     teamBlue = Team.objects.get(teamName=teamNamesList[0])
     teamRed = Team.objects.get(teamName=teamNamesList[1])
     blueUsers = User.objects.filter(teams__teamName=teamNamesList[0])
-    print(blueUsers)
     redUsers = User.objects.filter(teams__teamName=teamNamesList[1])
-    print(redUsers)
-    print(teamNamesList)
+
     form = UploadImageToVeryficate(instance=Match)
     if match.status == 'active':
-        if request.method == 'POST':
-            form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
-            if form.is_valid():
-                form.save()
-                messages.success(request, 'Zrzut ekranu został wysłany')
-    else:
-        messages.error(request, 'Gra zakończona')
+        try:
+            if request.method == 'POST':
+                form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
+                if form.is_valid():
+                    form.save()
 
-    context = {'form': form, 'match': match, 'teamBlue': teamBlue, 'teamRed': teamRed, 'blueUsers': blueUsers,
-               'redUsers': redUsers}
+                    winnerTeamName = image_verification.verify_iamge(request, match.id)
+                    print(winnerTeamName)
+                    messages.success(request, 'Zrzut ekranu został wysłany')
+                    messages.info(request, "Zwyciężyła drużyna: " + winnerTeamName)
+
+                    if teamNamesList[0] == winnerTeamName:
+                        match.pointBlue = 1
+                        match.status = Match.COMPLETED
+                        match.save()
+                    elif teamNamesList[1] == winnerTeamName:
+                        match.pointRed = 1
+                        match.status = Match.COMPLETED
+                        match.save()
+                    else:
+                        messages.error(request, 'Nie udało się dodać wyniku')
+                else:
+                    messages.error(request, 'Nie wybrano pliku')
+        except:
+            messages.error(request, 'Nie wybrano pliku')
+
+    else:
+        messages.error(request, 'Mecz zakończony')
+    # print(request.build_absolute_uri(match.afterGameImage.url))
+    # print(match.afterGameImage.url)
+    # term = quote("'{}'".format(match.afterGameImage.url))
+    # print(term)
+    # if match.afterGameImage and match.status == 'active':
+    #     # path to tessercat.exe
+    #     # pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\Szane\\PycharmProjects\\Tessercat\\tesseract.exe"
+    #     #
+    #     # # Read end game summary image
+    #     # img_grey = cv2.imread('http://127.0.0.1:8000/images/matchEnds_images/1_8HCQvo6.png')
+    #     # print(img_grey)
+    #
+    #
+    # else:
+    #     print('niema')
+
+    context = {'tournament': tournament, 'form': form, 'match': match, 'teamBlue': teamBlue, 'teamRed': teamRed,
+               'blueUsers': blueUsers,
+               'redUsers': redUsers, 'requestTeam': requestTeam}
 
     return render(request, 'tournaments/match_view.html', context)
