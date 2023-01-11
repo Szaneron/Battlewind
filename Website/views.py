@@ -342,7 +342,7 @@ def details_tournament(request, tournament_id):
             if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 if teamsInTournament == 0:
-                    if tournament.registeredTeams.count() < tournament.maxTeams:
+                    if tournament.registeredTeams.count() < 4:
                         tournament.registeredTeams.add(team.id)
                         tournament.save()
                         messages.success(request, "Drużyna dołączyła do turnieju")
@@ -437,7 +437,6 @@ def show_tournament_bracket(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     matches = Match.objects.filter(tournamentName=tournament.id)
     teams = Team.objects.filter(members__in=[request.user])
-
     dateTime = tournament.date.strftime("%d-%m-%Y")
     hourTime = tournament.time.strftime("%H:%M:%S")
     currentDate = date.today()
@@ -459,22 +458,65 @@ def show_tournament_bracket(request, tournament_id):
                 return zip(*[iter(iterable)] * n)
 
             if tournament.registeredTeams:
+                matchCounter = 0
+                counter = 1
                 for team1, team2 in grouped(tournamentTeamList, 2):
-                    matchExsist = Match.objects.filter(
-                        teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id], tournamentName=tournament.id)
+                    matchName = counter
+                    teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                    teams.teamsInMatch.add(team1, team2)
+                    teams.save
+                    matchCounter += 1
+                    counter += 1
 
-                    if not matchExsist:
-                        matchName = str(team1) + ' vs ' + str(team2)
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.teamsInMatch.add(team1, team2)
-                        teams.save
+                print(matchCounter)
+                while matchCounter != len(tournamentTeamList):
+                    matchName = counter
+                    teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                    teams.save()
+                    matchCounter += 1
+                    counter += 1
+
+                lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
+                print(lastTeam)
+                lastTeamObject = Team.objects.get(teamName=lastTeam)
+
+                nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
+                                                             teamsInMatch__teamsInMatch=None)
+                print('to to:')
+                print(nextEmptyCreatedMatch[0])
+                nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
+                nextEmptyCreatedMatch[0].save()
+                print(lastTeamObject)
+
+            # if tournament.registeredTeams:
+            #     matchCounter = 0
+            #     counter = 1
+            #     for team1, team2 in grouped(tournamentTeamList, 2):
+            #         matchExsist = Match.objects.filter(
+            #             teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id],
+            #             tournamentName=tournament.id)
+            #
+            #         if not matchExsist:
+            #             matchName = counter
+            #             teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            #             teams.teamsInMatch.add(team1, team2)
+            #             teams.save
+            #             matchCounter += 1
+            #             counter += 1
+            #
+            #     print(matchCounter)
+            #     while matchCounter != 4:
+            #         matchName = counter
+            #         teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            #         teams.save()
+            #         matchCounter += 1
+            #         counter += 1
 
         else:
             def get_team_list():
                 teams = []
 
                 for team in tournament.registeredTeams.all():
-                    print(team.teamName)
                     teams.append(team.teamName)
 
                 while len(teams) < 4:
@@ -483,17 +525,30 @@ def show_tournament_bracket(request, tournament_id):
                 return teams
 
             teamList = get_team_list()
-            print(teamList)
-            teamList = json.dumps(teamList)
 
-            def if_team_is_registerd():
+            def get_match_results():
+                results = []
+                for match in matches:
+                    results.append(match.pointBlue)
+                    results.append(match.pointRed)
+
+                while len(results) < (2 * len(teamList)):
+                    results.append(None)
+
+                return results
+
+            resusltsList = get_match_results()
+
+            def if_team_is_registered():
                 for name in teams:
+                    val = True
                     if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
-                        return True
+                        val = True
                     else:
-                        return False
+                        pass
+                    return val
 
-            if if_team_is_registerd():
+            if if_team_is_registered():
                 def get_team_registered_by_user():
                     for name in teams:
                         if tournament.registeredTeams.filter(registeredTeams__registeredTeams=name.id):
@@ -504,15 +559,22 @@ def show_tournament_bracket(request, tournament_id):
                 teamRegisteredByUser = get_team_registered_by_user()
 
                 def get_match_object():
-                    for match in matches:
-                        if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id):
-                            matchObject = match
+                    for _ in matches:
+                        for match in matches:
+                            if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id,
+                                                         teamsInMatch__status='active'):
+                                matchObject = match
 
-                            return matchObject
+                                return matchObject
 
                 matchObject = get_match_object()
+
+                teamList = json.dumps(teamList)
+                resusltsList = json.dumps(resusltsList)
                 context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser,
-                           'matchObject': matchObject, 'teamList': teamList, 'dateTime': dateTime, "hourTime": hourTime}
+                           'matchObject': matchObject, 'teamList': teamList, 'resusltsList': resusltsList,
+                           'dateTime': dateTime,
+                           "hourTime": hourTime}
 
                 return render(request, 'tournaments/bracket_in_tournament.html', context)
 
@@ -545,16 +607,41 @@ def show_match_in_tournament(request, tournament_id, match_id):
                     form.save()
 
                     winnerTeamName = image_verification.verify_iamge(request, match.id)
-                    print(winnerTeamName)
+                    if teamNamesList[0] == winnerTeamName:
+                        winnerTeamName = teamNamesList[0]
+                        losserTeamName = teamNamesList[1]
+                    elif teamNamesList[1] == winnerTeamName:
+                        winnerTeamName = teamNamesList[1]
+                        losserTeamName = teamNamesList[0]
+
+                    print('win team: ', winnerTeamName)
+                    print('loss team: ', losserTeamName)
+
                     messages.success(request, 'Zrzut ekranu został wysłany')
                     messages.info(request, "Zwyciężyła drużyna: " + winnerTeamName)
 
                     if teamNamesList[0] == winnerTeamName:
                         match.pointBlue = 1
+                        match.winner = winnerTeamName
                         match.status = Match.COMPLETED
                         match.save()
+
+                        if match.winner == winnerTeamName:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.teamsInMatch.add(team.id)
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.teamsInMatch.add(team.id)
+                        else:
+                            messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+
                     elif teamNamesList[1] == winnerTeamName:
                         match.pointRed = 1
+                        match.winner = winnerTeamName
                         match.status = Match.COMPLETED
                         match.save()
                     else:
@@ -566,6 +653,7 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
     else:
         messages.error(request, 'Mecz zakończony')
+
     # print(request.build_absolute_uri(match.afterGameImage.url))
     # print(match.afterGameImage.url)
     # term = quote("'{}'".format(match.afterGameImage.url))

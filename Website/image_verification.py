@@ -146,10 +146,10 @@ def verify_iamge(request, match_id):
     endGameStatus = get_game_end_status()
 
     if validationResultForTeamBlue >= 3 and validationResultForTeamRed >= 3:
-        winnerTeam = get_winner_team(screenTeamBlueSummonerNames, screenTeamRedSummonerNames,
+        winnerTeam = get_winner_team(blueTeamSummonerNameListLower, redTeamSummonerNameListLower,
                                      screenSenderSummonerNameLower,
                                      endGameStatus)
-        
+
     return winnerTeam
 
 ################################################################################

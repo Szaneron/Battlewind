@@ -96,7 +96,7 @@ class Match(models.Model):
         (COMPLETED, 'Completed')
     )
     tournamentName = models.ForeignKey(Tournament, on_delete=models.CASCADE)
-    matchName = models.CharField(max_length=200, default='vs')
+    matchName = models.IntegerField()
     teamsInMatch = models.ManyToManyField(Team, related_name='teamsInMatch', blank=True)
     winner = models.CharField(max_length=100, null=True, blank=True)
     pointBlue = models.IntegerField(default=0)

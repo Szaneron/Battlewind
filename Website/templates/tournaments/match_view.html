@@ -10,9 +10,6 @@
 <body style="background-color: #16181b">
 
 {% include 'navbar.html' %}
-<body style="background-color: #16181b">
-
-{% include 'navbar.html' %}
 <div class="container min-vh-100" style="padding-top: 100px; background-color: #3b424a">
     {% include 'messages.html' %}
     <div class="row d-flex align-items-center bg-warning m-3 rounded-5">
@@ -41,16 +38,16 @@
             </ul>
         </div>
     </div>
-    <h1 class="text-center text-warning"><b>{{ match.matchName }}</b></h1>
+    <h1 class="text-center text-warning"><b>{{ teamBlue }} &nbsp;&nbsp;vs&nbsp;&nbsp; {{ teamRed }}</b></h1>
 
     <div class="row m-1">
         <div class="col-md-6 pt-3">
             <div class="card p-3" style="background-color: #319FFD">
-                <h4 class="text-center text-dark"><b>{{ teamBlue }}</b></h4>
+                <h4 class="text-center text-white"><b>{{ teamBlue }}</b></h4>
                 <hr class="text-white">
                 <div class="row">
                     <div class="col-sm-12 d-flex">
-                        <table class="table table-sm text-center">
+                        <table class="table table-sm text-center text-white">
                             <thead>
                             <td><b>Nazwa użytkownika</b></td>
                             </thead>
@@ -61,7 +58,7 @@
                             {% endfor %}
                         </table>
 
-                        <table class="table table-sm text-center">
+                        <table class="table table-sm text-center text-white">
                             <thead>
                             <td><b>Nazwa przywoływacza</b></td>
                             </thead>
@@ -78,11 +75,11 @@
         </div>
         <div class="col-md-6 pt-3">
             <div class="card p-3" style="background-color: #FD5531">
-                <h4 class="text-center text-dark"><b>{{ teamBlue }}</b></h4>
+                <h4 class="text-center text-dark text-white"><b>{{ teamRed }}</b></h4>
                 <hr class="text-white">
                 <div class="row">
                     <div class="col-sm-12 d-flex">
-                        <table class="table table-sm text-center">
+                        <table class="table table-sm text-center text-white">
                             <thead>
                             <td><b>Nazwa użytkownika</b></td>
                             </thead>
@@ -93,7 +90,7 @@
                             {% endfor %}
                         </table>
 
-                        <table class="table table-sm text-center">
+                        <table class="table table-sm text-center text-white">
                             <thead>
                             <td><b>Nazwa przywoływacza</b></td>
                             </thead>
