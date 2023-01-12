@@ -353,7 +353,8 @@ def details_tournament(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
-    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime}
+    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime,
+               'currentTime': currentTime, 'currentDate': currentDate}
     return render(request, 'tournaments/tournament_view.html', context)
 
 
@@ -406,31 +407,10 @@ def show_tournament_teams(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
-    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime}
+    context = {'tournament': tournament, 'teams': teams, 'dateTime': dateTime, 'hourTime': hourTime,
+               'currentTime': currentTime, 'currentDate': currentDate}
 
     return render(request, 'tournaments/teams_in_tournament.html', context)
-
-
-# def create_tournament_matches(tournament_id):
-#     tournament = get_object_or_404(Tournament, pk=tournament_id)
-#
-#     teamList = [tournament for tournament in tournament.registeredTeams.all()]
-#     print(teamList)
-#     random.shuffle(teamList)
-#     print(teamList)
-#
-#     def grouped(iterable, n):
-#         "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
-#         return zip(*[iter(iterable)] * n)
-#
-#     if tournament.registeredTeams:
-#         for team1, team2 in grouped(teamList, 2):
-#             print(team1.id)
-#             print(team2.id)
-#             print("----")
-#             teams = Match.objects.create(tournamentName=tournament.id)
-#             teams.teamsInMatch.add(team1, team2)
-#             teams.save
 
 
 def show_tournament_bracket(request, tournament_id):
@@ -457,87 +437,217 @@ def show_tournament_bracket(request, tournament_id):
                 "s -> (s0,s1,s2,...sn-1), (sn,sn+1,sn+2,...s2n-1), (s2n,s2n+1,s2n+2,...s3n-1), ..."
                 return zip(*[iter(iterable)] * n)
 
-            if tournament.registeredTeams:
+            if tournament.registeredTeams.count() <= 4:
                 matchCounter = 0
                 counter = 1
-                for team1, team2 in grouped(tournamentTeamList, 2):
-                    matchName = counter
-                    teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                    teams.teamsInMatch.add(team1, team2)
-                    teams.save
-                    matchCounter += 1
-                    counter += 1
+                if len(tournamentTeamList) % 2 == 0:
+                    for team1, team2 in grouped(tournamentTeamList, 2):
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.teamsInMatch.add(team1, team2)
+                        teams.save
+                        matchCounter += 1
+                        counter += 1
 
-                print(matchCounter)
-                while matchCounter != len(tournamentTeamList):
-                    matchName = counter
-                    teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                    teams.save()
-                    matchCounter += 1
-                    counter += 1
+                    while matchCounter != 4:
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.save()
+                        matchCounter += 1
+                        counter += 1
+                else:
+                    for team1, team2 in grouped(tournamentTeamList, 2):
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.teamsInMatch.add(team1, team2)
+                        teams.save
+                        matchCounter += 1
+                        counter += 1
 
-                lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
-                print(lastTeam)
-                lastTeamObject = Team.objects.get(teamName=lastTeam)
+                    while matchCounter != 4:
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.save()
+                        matchCounter += 1
+                        counter += 1
 
-                nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
-                                                             teamsInMatch__teamsInMatch=None)
-                print('to to:')
-                print(nextEmptyCreatedMatch[0])
-                nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
-                nextEmptyCreatedMatch[0].save()
-                print(lastTeamObject)
+                    lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
+                    print(lastTeam)
+                    lastTeamObject = Team.objects.get(teamName=lastTeam)
 
-            # if tournament.registeredTeams:
-            #     matchCounter = 0
-            #     counter = 1
-            #     for team1, team2 in grouped(tournamentTeamList, 2):
-            #         matchExsist = Match.objects.filter(
-            #             teamsInMatch__teamsInMatch__teamsInMatch__in=[team1.id, team2.id],
-            #             tournamentName=tournament.id)
-            #
-            #         if not matchExsist:
-            #             matchName = counter
-            #             teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-            #             teams.teamsInMatch.add(team1, team2)
-            #             teams.save
-            #             matchCounter += 1
-            #             counter += 1
-            #
-            #     print(matchCounter)
-            #     while matchCounter != 4:
-            #         matchName = counter
-            #         teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-            #         teams.save()
-            #         matchCounter += 1
-            #         counter += 1
+                    nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
+                                                                 teamsInMatch__teamsInMatch=None)
+                    print('to to:')
+                    print(nextEmptyCreatedMatch[0])
+                    nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
+                    nextEmptyCreatedMatch[0].save()
+                    print(lastTeamObject)
+            else:
+                matchCounter = 0
+                counter = 1
+                if len(tournamentTeamList) % 2 == 0:
+                    for team1, team2 in grouped(tournamentTeamList, 2):
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.teamsInMatch.add(team1, team2)
+                        teams.save
+                        matchCounter += 1
+                        counter += 1
+
+                    while matchCounter != 8:
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.save()
+                        matchCounter += 1
+                        counter += 1
+                else:
+                    for team1, team2 in grouped(tournamentTeamList, 2):
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.teamsInMatch.add(team1, team2)
+                        teams.save
+                        matchCounter += 1
+                        counter += 1
+
+                    while matchCounter != 8:
+                        matchName = counter
+                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+                        teams.save()
+                        matchCounter += 1
+                        counter += 1
+
+                    lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
+                    print(lastTeam)
+                    lastTeamObject = Team.objects.get(teamName=lastTeam)
+
+                    nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
+                                                                 teamsInMatch__teamsInMatch=None)
+                    print('to to:')
+                    print(nextEmptyCreatedMatch[0])
+                    nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
+                    nextEmptyCreatedMatch[0].save()
+                    print(lastTeamObject)
+
+            return redirect('bracket_in_tournament', tournament.id)
 
         else:
-            def get_team_list():
-                teams = []
+            if tournament.registeredTeams.count() <= 4:
+                print('mała drabinka')
 
-                for team in tournament.registeredTeams.all():
-                    teams.append(team.teamName)
+                def set_status_for_empty_matches():
+                    for match in matches:
+                        if match.teamsInMatch.count() == 0:
+                            match.status = Match.COMPLETED
+                            match.save()
 
-                while len(teams) < 4:
-                    teams.append(None)
+                set_status_for_empty_matches()
 
-                return teams
+                def set_matches_with_one_team():
+                    print('Robimy check solo')
+                    for match in matches:
+                        if match.teamsInMatch.count() == 1:
+                            currentMatch = Match.objects.get(matchName=match.matchName)
+                            teamObject = currentMatch.teamsInMatch.all().values_list('teamName')
+                            team = Team.objects.get(teamName=teamObject[0][0])
+                            if match.matchName == 2:
+                                currentMatch.status = Match.COMPLETED
+                                currentMatch.save()
+                                nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.status = Match.ACTIVE
+                                nextMatch.save()
 
-            teamList = get_team_list()
+                set_matches_with_one_team()
 
-            def get_match_results():
-                results = []
-                for match in matches:
-                    results.append(match.pointBlue)
-                    results.append(match.pointRed)
+                def get_team_list():
+                    teams = []
 
-                while len(results) < (2 * len(teamList)):
-                    results.append(None)
+                    for team in tournament.registeredTeams.all():
+                        teams.append(team.teamName)
 
-                return results
+                    while len(teams) != 4:
+                        teams.append(None)
+
+                    return teams
+
+                teamList = get_team_list()
+
+                def get_match_results():
+                    results = []
+                    for match in matches:
+                        results.append(match.pointBlue)
+                        results.append(match.pointRed)
+
+                    while len(results) < (2 * len(teamList)):
+                        results.append(None)
+
+                    return results
+            else:
+                print('duża drabinka')
+
+                def set_status_for_empty_matches():
+                    for match in matches:
+                        if match.teamsInMatch.count() == 0:
+                            match.status = Match.COMPLETED
+                            match.save()
+
+                set_status_for_empty_matches()
+
+                def set_matches_with_one_team():
+                    print('Robimy check solo')
+                    for match in matches:
+                        if match.teamsInMatch.count() == 1:
+                            currentMatch = Match.objects.get(matchName=match.matchName)
+                            teamObject = currentMatch.teamsInMatch.all().values_list('teamName')
+                            team = Team.objects.get(teamName=teamObject[0][0])
+                            if match.matchName == 4:
+                                currentMatch.status = Match.COMPLETED
+                                currentMatch.save()
+                                nextMatch = Match.objects.get(matchName=6)
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.status = Match.ACTIVE
+                                nextMatch.save()
+                            if match.matchName == 3:
+                                currentMatch.status = Match.COMPLETED
+                                currentMatch.save()
+                                nextMatch = Match.objects.get(matchName=7)
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.status = Match.ACTIVE
+                                nextMatch.save()
+                        else:
+                            pass
+
+                set_matches_with_one_team()
+
+                def get_team_list():
+                    teams = []
+
+                    for team in tournament.registeredTeams.all():
+                        teams.append(team.teamName)
+
+                    while len(teams) != 8:
+                        teams.append(None)
+
+                    return teams
+
+                teamList = get_team_list()
+
+                def get_match_results():
+                    results = []
+                    for match in matches:
+                        results.append(match.pointBlue)
+                        results.append(match.pointRed)
+
+                    while len(results) < (2 * len(teamList)):
+                        results.append(None)
+
+                    return results
 
             resusltsList = get_match_results()
+            teamList = json.dumps(teamList)
+            print(teamList)
+            resusltsList = json.dumps(resusltsList)
+            print(resusltsList)
 
             def if_team_is_registered():
                 for name in teams:
@@ -569,8 +679,6 @@ def show_tournament_bracket(request, tournament_id):
 
                 matchObject = get_match_object()
 
-                teamList = json.dumps(teamList)
-                resusltsList = json.dumps(resusltsList)
                 context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser,
                            'matchObject': matchObject, 'teamList': teamList, 'resusltsList': resusltsList,
                            'dateTime': dateTime,
@@ -578,10 +686,11 @@ def show_tournament_bracket(request, tournament_id):
 
                 return render(request, 'tournaments/bracket_in_tournament.html', context)
 
-            context = {'tournament': tournament, 'teamList': teamList}
+            context = {'tournament': tournament, 'teamList': teamList, 'resusltsList': resusltsList}
             return render(request, 'tournaments/bracket_in_tournament.html', context)
 
-    context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime, 'matches': matches}
+    context = {'tournament': tournament, 'dateTime': dateTime, "hourTime": hourTime, 'matches': matches,
+               'currentTime': currentTime, 'currentDate': currentDate}
     return render(request, 'tournaments/bracket_in_tournament.html', context)
 
 
@@ -600,57 +709,198 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
     form = UploadImageToVeryficate(instance=Match)
     if match.status == 'active':
-        try:
-            if request.method == 'POST':
-                form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
-                if form.is_valid():
-                    form.save()
+        if request.method == 'POST':
+            form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
+            if form.is_valid():
+                form.save()
 
-                    winnerTeamName = image_verification.verify_iamge(request, match.id)
-                    if teamNamesList[0] == winnerTeamName:
-                        winnerTeamName = teamNamesList[0]
-                        losserTeamName = teamNamesList[1]
-                    elif teamNamesList[1] == winnerTeamName:
-                        winnerTeamName = teamNamesList[1]
-                        losserTeamName = teamNamesList[0]
+                winnerTeamName = image_verification.verify_iamge(request, match.id)
+                if teamNamesList[0] == winnerTeamName:
+                    winnerTeamName = teamNamesList[0]
+                    losserTeamName = teamNamesList[1]
+                elif teamNamesList[1] == winnerTeamName:
+                    winnerTeamName = teamNamesList[1]
+                    losserTeamName = teamNamesList[0]
 
-                    print('win team: ', winnerTeamName)
-                    print('loss team: ', losserTeamName)
+                print('win team: ', winnerTeamName)
+                print('loss team: ', losserTeamName)
 
-                    messages.success(request, 'Zrzut ekranu został wysłany')
-                    messages.info(request, "Zwyciężyła drużyna: " + winnerTeamName)
+                messages.success(request, 'Zrzut ekranu został wysłany')
+                messages.info(request, "Zwyciężyła drużyna: " + winnerTeamName)
 
-                    if teamNamesList[0] == winnerTeamName:
-                        match.pointBlue = 1
-                        match.winner = winnerTeamName
-                        match.status = Match.COMPLETED
-                        match.save()
-
-                        if match.winner == winnerTeamName:
+                if teamNamesList[0] == winnerTeamName:
+                    match.pointBlue = 1
+                    match.winner = winnerTeamName
+                    match.losser = losserTeamName
+                    match.status = Match.COMPLETED
+                    match.save()
+                    if match.winner == winnerTeamName:
+                        if tournament.registeredTeams.count() <= 4:
                             print(match.matchName)
                             if match.matchName == 1:
+                                print('przenoszenie')
                                 team = Team.objects.get(teamName=winnerTeamName)
                                 nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.status = nextMatch.ACTIVE
                                 nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
                             elif match.matchName == 2:
                                 team = Team.objects.get(teamName=winnerTeamName)
                                 nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.status = nextMatch.ACTIVE
                                 nextMatch.teamsInMatch.add(team.id)
-                        else:
-                            messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+                                nextMatch.save()
 
-                    elif teamNamesList[1] == winnerTeamName:
-                        match.pointRed = 1
-                        match.winner = winnerTeamName
-                        match.status = Match.COMPLETED
-                        match.save()
-                    else:
-                        messages.error(request, 'Nie udało się dodać wyniku')
+                        elif tournament.registeredTeams.count() > 4:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=5)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=5)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 3:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=6)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 4:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=6)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            else:
+                                messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+                    if match.losser == losserTeamName:
+                        if tournament.registeredTeams.count() <= 4:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                print('przenoszenie')
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=4)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=4)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+
+                        elif tournament.registeredTeams.count() > 4:
+                            print(match.matchName)
+                            if match.matchName == 5:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=8)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 6:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=8)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            else:
+                                messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+
+                elif teamNamesList[1] == winnerTeamName:
+                    match.pointRed = 1
+                    match.winner = winnerTeamName
+                    match.losser = losserTeamName
+                    match.status = Match.COMPLETED
+                    match.save()
+                    if match.winner == winnerTeamName:
+                        if tournament.registeredTeams.count() <= 4:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                print('przenoszenie')
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=3)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+
+                        elif tournament.registeredTeams.count() > 4:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=5)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=5)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 3:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=6)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 4:
+                                team = Team.objects.get(teamName=winnerTeamName)
+                                nextMatch = Match.objects.get(matchName=6)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            else:
+                                messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+                    if match.losser == losserTeamName:
+                        if tournament.registeredTeams.count() <= 4:
+                            print(match.matchName)
+                            if match.matchName == 1:
+                                print('przenoszenie')
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=4)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 2:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=4)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            else:
+                                messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
+
+                        elif tournament.registeredTeams.count() > 4:
+                            print(match.matchName)
+                            if match.matchName == 5:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=8)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            elif match.matchName == 6:
+                                team = Team.objects.get(teamName=losserTeamName)
+                                nextMatch = Match.objects.get(matchName=8)
+                                nextMatch.status = nextMatch.ACTIVE
+                                nextMatch.teamsInMatch.add(team.id)
+                                nextMatch.save()
+                            else:
+                                messages.error(request, 'Error przy dodawaniu drużyny do kolejnego meczu')
                 else:
-                    messages.error(request, 'Nie wybrano pliku')
-        except:
-            messages.error(request, 'Nie wybrano pliku')
-
+                    messages.error(request, 'Nie udało się dodać wyniku')
     else:
         messages.error(request, 'Mecz zakończony')
 

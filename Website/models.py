@@ -99,6 +99,7 @@ class Match(models.Model):
     matchName = models.IntegerField()
     teamsInMatch = models.ManyToManyField(Team, related_name='teamsInMatch', blank=True)
     winner = models.CharField(max_length=100, null=True, blank=True)
+    losser = models.CharField(max_length=100, null=True, blank=True)
     pointBlue = models.IntegerField(default=0)
     pointRed = models.IntegerField(default=0)
     status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=ACTIVE)

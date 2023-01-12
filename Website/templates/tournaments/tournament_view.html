@@ -46,23 +46,41 @@
                        style="text-decoration: none">Drabinka</a></li>
             </ul>
         </div>
-        <div class="col-md-4">
-            <h5>Zapisane druzyny: {{ tournament.registeredTeams.count }} / {{ tournament.maxTeams }}</h5>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Zapisz się!
-            </button>
-        </div>
+        {% if currentDate == dateTime and currentTime < hourTime %}
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal">
+                    Zapisz się!
+                </button>
+            </div>
+        {% else %}
+            <div class="col-md-2 text-white">
+
+            </div>
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+        {% endif %}
     </div>
     <hr>
     <div class="row m-3">
         <div class="col-md-6" style="text-align: justify">
             <h4>Opis turnieju:</h4>
             <span>{{ tournament.description }}</span>
+            <h4 class="mt-4">Organizator:</h4>
+            <img class="d-inline-flex rounded-circle d-block" style="width: 50px; height: 50px"
+                 src="{{ tournament.organizer.image.url }}">
+            <h6 class="d-inline-flex p-2">{{ tournament.organizer }}</h6>
         </div>
-        <div class="col-md-6">
-            <div class="row p-2">
+        <div class="col-md-6 d-block align-self-center p-4">
+            <div class="row p-2 ">
                 <div class="col-md-6">
                     <div class="card text-center bg-warning text-dark p-2">
                         <h5><b>Region</b></h5>
@@ -94,14 +112,6 @@
     </div>
     <hr>
 
-    <div class="row m-3">
-        <div class="col-6" style="font-size: 14px">
-            <h5>Organizator:</h5>
-            <img class="d-inline-flex rounded-circle d-block" style="width: 50px; height: 50px"
-                 src="{{ tournament.organizer.image.url }}">
-            <h6 class="d-inline-flex p-2">{{ tournament.organizer }}</h6>
-        </div>
-    </div>
 
     <div class="modal fade text-center" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel"
          aria-hidden="true">

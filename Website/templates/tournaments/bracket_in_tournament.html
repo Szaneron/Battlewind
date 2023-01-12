@@ -49,78 +49,127 @@
                         style="text-decoration: none">Drabinka</a></li>
             </ul>
         </div>
-        <div class="col-md-4 text-white">
-            <h5>Zapisane druzyny: {{ tournament.registeredTeams.count }} / {{ tournament.maxTeams }}</h5>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Zapisz się!
-            </button>
-        </div>
+        {% if currentDate == dateTime and currentTime < hourTime %}
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal">
+                    Zapisz się!
+                </button>
+            </div>
+        {% else %}
+            <div class="col-md-2 text-white">
+
+            </div>
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+        {% endif %}
     </div>
     <hr class="text-white">
-    {% if matches.count == 0 %}
-        <div class="row">
-            <div class="col-md-12 text-center ">
-                <a href="{% url 'bracket_in_tournament' tournament.id %}" class="btn btn-info">Pokaż drabinkę</a>
-            </div>
-        </div>
-
-    {% endif %}
     <div class="row d-flex align-items-center">
         <div class="col-md-12 text-white text-center ">
-            {% if matchObject.status == 'active' %}
+            {% if matchObject.status == 'active' and matchObject.teamsInMatch.count == 2 %}
                 <a href="{% url 'show_match_in_tournament' tournament.id matchObject.id %}" class="btn btn-success">
                     <h4>Przejdź do swojego meczu</h4>
                 </a>
             {% endif %}
         </div>
     </div>
-
-
-    <div id="matchesblank">
-        <div class="demo">
+    {% if tournament.registeredTeams.count <= 4 %}
+        <div id="bracketsmall">
+            <div class="demosmall">
+            </div>
         </div>
-    </div>
+    {% else %}
+        <div id="bracketlarge">
+            <div class="demolarge">
+            </div>
+        </div>
+    {% endif %}
 
 
     <script type="text/javascript" src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
     <script type="text/javascript" src="{% static 'js/jquery.bracket.min.js' %}"></script>
-
     <script type="text/javascript">
         var teams =
         {{ teamList|safe }}
         var results =
         {{ resusltsList|safe }}
 
-        var matchData = {
-            teams: [
-                [teams[0], teams[1]],
-                [teams[2], teams[3]]
-            ],
-            results: [
-                [[results[0], results[1]], [results[2], results[3]]],
-                [[results[4], results[5]], [results[6], results[7]]]
-            ]
-        }
+        {% if tournament.registeredTeams.count <= 4 %}
+            var smallbracket = {
+                teams: [
+                    [teams[0], teams[1]],
+                    [teams[2], teams[3]]
+                ],
+                results: [
+                    [
+                        [[results[0], results[1]], [results[2], results[3]]],
+                        [[results[4], results[5]], [results[6], results[7]]]
+                    ]
+                ]
+            };
 
-        var resizeParameters = {
-            teamWidth: 150,
-            scoreWidth: 30,
-            matchMargin: 30,
-            roundMargin: 60,
-            init: matchData
-        };
+            var resizeParameters = {
+                teamWidth: 150,
+                scoreWidth: 30,
+                matchMargin: 30,
+                roundMargin: 60,
+                init: smallbracket
+            };
 
-        function updateResizeDemo() {
-            $('#matchesblank .demo').bracket(resizeParameters);
-        }
+            function updateResizeDemo() {
+                $('#bracketsmall .demosmall').bracket(resizeParameters);
+            }
 
-        $(updateResizeDemo)
-        $('#matchesblank .demo').bracket({
-            init: matchData,
-        })
+            $(updateResizeDemo)
+            $('#bracketsmall .demosmall').bracket({
+                init: smallbracket,
+            })
+        {% else %}
+            var largebracket = {
+                teams: [
+                    [teams[0], teams[1]],
+                    [teams[2], teams[3]],
+                    [teams[4], teams[5]],
+                    [teams[6], teams[7]]
+                ],
+                results: [
+                    [
+                        [[results[0], results[1]], [results[2], results[3]], [results[4], results[5]], [results[6], results[7]]],
+                        [[results[8], results[9]], [results[10], results[11]]],
+                        [[results[12], results[13]], [results[14], results[15]]]
+                    ]
+                ]
+            };
+
+            var resizeParameters = {
+                teamWidth: 150,
+                scoreWidth: 30,
+                matchMargin: 30,
+                roundMargin: 60,
+                init: largebracket
+            };
+
+            function updateResizeDemo() {
+                $('#bracketlarge .demolarge').bracket(resizeParameters);
+            }
+
+            $(updateResizeDemo)
+            $('#bracketlarge .demolarge').bracket({
+                init: largebracket,
+            })
+        {% endif %}
+
     </script>
+
 </div>
 </body>
 </html>

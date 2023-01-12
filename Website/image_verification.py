@@ -9,6 +9,7 @@ from Website.models import *
 def verify_iamge(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
 
+    print('weryfikacja')
     # path to tesseract.exe
     pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\Szane\\PycharmProjects\\Tessercat\\tesseract.exe"
     coreImagePath = r'Website/static'
@@ -16,9 +17,7 @@ def verify_iamge(request, match_id):
     matchEndImagePath = coreImagePath + matchEndImagePath
 
     teamNamesObjects = [team for team in match.teamsInMatch.all()]
-    print(teamNamesObjects)
     teamNamesList = [team.teamName for team in teamNamesObjects]
-    print(teamNamesList)
 
     # Read end game summary image
     img_grey = cv2.imread(matchEndImagePath, 0)
@@ -49,15 +48,17 @@ def verify_iamge(request, match_id):
 
     # Function that checks the Summoner Name logged into the client
     def get_screen_sender_summoner_name():
-        playerName = cv2.resize(img_grey[30:50, 1125:1280], (0, 0), fx=2, fy=2)
+        playerName = cv2.resize(img_grey[25:52, 1125:1280], (0, 0), fx=1.8, fy=1.8)
         playerNameValue = pytesseract.image_to_string(playerName)
+        print(playerNameValue)
         playerNameValue = playerNameValue.split("\n")
+        print(playerNameValue)
         playerNameValue = list(filter(None, playerNameValue))
         return playerNameValue[0]
 
     # Function that saves the summoner names of blue team players read from the picture to the list
-    def get_summoner_names_for_team_blue_from_screen():
-        playersName = cv2.resize(img_grey[155:360, 190:340], (0, 0), fx=2, fy=2)
+    def get_summoner_names_for_team_one_from_screen():
+        playersName = cv2.resize(img_grey[155:360, 190:340], (0, 0), fx=1.8, fy=1.8)
         summonerNamesList = pytesseract.image_to_string(playersName)
         summonerNamesList = summonerNamesList.split("\n")
         summonerNamesList = [x.strip(' ') for x in summonerNamesList]
@@ -67,8 +68,8 @@ def verify_iamge(request, match_id):
         return summonerNamesList
 
     # Function that saves the summoner names of red team players read from the picture to the list
-    def get_summoner_names_for_team_red_from_screen():
-        playersName = cv2.resize(img_grey[395:600, 190:340], (0, 0), fx=2, fy=2)
+    def get_summoner_names_for_team_two_from_screen():
+        playersName = cv2.resize(img_grey[395:600, 190:340], (0, 0), fx=1.8, fy=1.8)
         summonerNamesList = pytesseract.image_to_string(playersName)
         summonerNamesList = summonerNamesList.split("\n")
         summonerNamesList = [x.strip(' ') for x in summonerNamesList]
@@ -76,6 +77,24 @@ def verify_iamge(request, match_id):
         summonerNamesList = [x.lower() for x in summonerNamesList]
         summonerNamesList = [champName for champName in summonerNamesList if champName not in champList]
         return summonerNamesList
+
+    def assign_screen_summoner_names_to_teams(blueTeamDb, oneTeamScreen, redTeamDb, twoTeamScreen):
+        blueTeamDb = set(blueTeamDb)
+        oneTeamScreen = set(oneTeamScreen)
+        redTeamDb = set(redTeamDb)
+        twoTeamScreen = set(twoTeamScreen)
+        colorTeamList = []
+
+        validationOne = blueTeamDb.intersection(oneTeamScreen)
+        validationTwo = redTeamDb.intersection(twoTeamScreen)
+        if len(validationOne) >= 3 and len(validationTwo) >= 3:
+            colorTeamList.append(oneTeamScreen)
+            colorTeamList.append(twoTeamScreen)
+        else:
+            colorTeamList.append(twoTeamScreen)
+            colorTeamList.append(oneTeamScreen)
+
+        return colorTeamList
 
     # Function that reads whether the game on the screen was won or lost
     def get_game_end_status():
@@ -87,21 +106,32 @@ def verify_iamge(request, match_id):
 
     # function that checks if summoner names from the screenshot are the same as the summoner names from the database
     def validate_summoner_names(siteList, screenList):
-        siteList.sort()
-        screenList.sort()
-        numberOfCorrectPlayers = 0
-        try:
-            for iterator in range(5):
-                if siteList[iterator] == screenList[iterator]:
-                    numberOfCorrectPlayers += 1
-        except:
-            messages.error(request,
-                           'Problem z listą podczas validacji nazw przywoływaczy. Prześlij ponownie zrzut ekranu!')
+        setSiteList = set(siteList)
+        setScreenlist = set(screenList)
 
-        if numberOfCorrectPlayers >= 3:
-            return numberOfCorrectPlayers
+        validation = setSiteList.intersection(setScreenlist)
+
+        if len(validation) >= 3:
+            return len(validation)
         else:
-            return messages.error("Błąd weryfikacji - Ilośc poprwanie wykrytych:", numberOfCorrectPlayers)
+            return messages.error(request, "Błąd weryfikacji - Ilośc poprwanie wykrytych nazw jest mniejsza niż 3:")
+        # siteList.sort()
+        # print(siteList)
+        # screenList.sort()
+        # print(screenList)
+        # numberOfCorrectPlayers = 0
+        # try:
+        #     for iterator in range(5):
+        #         if siteList[iterator] == screenList[iterator]:
+        #             numberOfCorrectPlayers += 1
+        # except:
+        #     messages.error(request,
+        #                    'Problem z listą podczas validacji nazw przywoływaczy. Prześlij ponownie zrzut ekranu!')
+        #
+        # if numberOfCorrectPlayers >= 3:
+        #     return numberOfCorrectPlayers
+        # else:
+        #     return messages.error(request, "Błąd weryfikacji - Ilośc poprwanie wykrytych nazw jest mniejsza niż 3:")
 
     # Function that selects the winning team
     def get_winner_team(blueTeam, redTeam, summonerName, gameStatus):
@@ -123,32 +153,46 @@ def verify_iamge(request, match_id):
     # Team Blue summoner names list from db
     blueTeamSummonerNameList = get_blue_team_summoner_names_list()
     blueTeamSummonerNameListLower = [x.lower() for x in blueTeamSummonerNameList]
+    print('bluedb:', blueTeamSummonerNameListLower)
 
     # Team Red summoner names list from db
     redTeamSummonerNameList = get_red_team_summoner_names_list()
     redTeamSummonerNameListLower = [x.lower() for x in redTeamSummonerNameList]
+    print('reddb', redTeamSummonerNameListLower)
 
     # Summoner name read from screen that send the eng game image
     screenSenderSummonerName = get_screen_sender_summoner_name()
     screenSenderSummonerNameLower = screenSenderSummonerName.lower()
+    print(screenSenderSummonerNameLower)
 
-    # Site user-object of user that send the end game image
-    userThatSendImage = User.objects.get(profile__summonerName=screenSenderSummonerName)
+    # Summoner names read from the image for team one
+    screenTeamOneSummonerNames = get_summoner_names_for_team_one_from_screen()
+    print('bluecreen', screenTeamOneSummonerNames)
+    # Summoner names read from the image for team two
+    screenTeamTwoSummonerNames = get_summoner_names_for_team_two_from_screen()
+    print('redscreen', screenTeamTwoSummonerNames)
 
-    # Summoner names read from the image for team blue
-    screenTeamBlueSummonerNames = get_summoner_names_for_team_blue_from_screen()
-    # Summoner names read from the image for team red
-    screenTeamRedSummonerNames = get_summoner_names_for_team_red_from_screen()
+    assignedTeamColorList = assign_screen_summoner_names_to_teams(blueTeamSummonerNameListLower,
+                                                                  screenTeamOneSummonerNames,
+                                                                  redTeamSummonerNameListLower,
+                                                                  screenTeamTwoSummonerNames)
+
+    screenTeamBlueSummonerNames = assignedTeamColorList[0]
+    screenTeamRedSummonerNames = assignedTeamColorList[1]
 
     validationResultForTeamBlue = validate_summoner_names(blueTeamSummonerNameListLower, screenTeamBlueSummonerNames)
+    print(validationResultForTeamBlue)
     validationResultForTeamRed = validate_summoner_names(redTeamSummonerNameListLower, screenTeamRedSummonerNames)
+    print(validationResultForTeamRed)
 
     endGameStatus = get_game_end_status()
+    print(endGameStatus)
 
     if validationResultForTeamBlue >= 3 and validationResultForTeamRed >= 3:
         winnerTeam = get_winner_team(blueTeamSummonerNameListLower, redTeamSummonerNameListLower,
                                      screenSenderSummonerNameLower,
                                      endGameStatus)
+        print(winnerTeam)
 
     return winnerTeam
 
