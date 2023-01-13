@@ -9,6 +9,13 @@
 
     <link rel="stylesheet" type="text/css" href="{% static  'js/jquery.bracket.min.css' %}"/>
     <title>Title</title>
+
+    <style>
+        .horizontal-scrollable > .row {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    </style>
 </head>
 <body style="background-color: #16181b">
 
@@ -82,17 +89,56 @@
             {% endif %}
         </div>
     </div>
-    {% if tournament.registeredTeams.count <= 4 %}
-        <div id="bracketsmall">
-            <div class="demosmall">
+    <div class="horizontal-scrollable">
+        <div class="row m-2">
+            <div class="col-md-8">
+                {% if tournament.registeredTeams.count <= 4 %}
+                    <div id="bracketsmall">
+                        <div class="demosmall">
+                        </div>
+                    </div>
+                {% else %}
+                    <div id="bracketlarge">
+                        <div class="demolarge">
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 d-block align-self-center text-center p-4">
+                <h3 class="text-white text-center">Wyniki:</h3>
+                <ul class="list-group border-0">
+
+                    <li class="list-group-item bg-warning border-0"><span style="float: left">1 miejsce:</span>
+                        {% if firstPlace != None %}
+                            {{ firstPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #CCCCCC"><span
+                            style="float: left">2 miejsce:</span>
+                        {% if secondPlace != None %}
+                            {{ secondPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #996633"><span
+                            style="float: left">3 miejsce:</span>
+                        {% if thirdPlace != None %}
+                            {{ thirdPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #667788"><span
+                            style="float: left">4 miejsce:</span>
+                        {% if fourthPlace != None %}
+                            {{ fourthPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                </ul>
             </div>
         </div>
-    {% else %}
-        <div id="bracketlarge">
-            <div class="demolarge">
-            </div>
-        </div>
-    {% endif %}
+    </div>
 
 
     <script type="text/javascript" src="{% static 'js/jquery-3.6.3.min.js' %}"></script>

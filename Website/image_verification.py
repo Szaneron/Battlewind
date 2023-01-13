@@ -9,7 +9,6 @@ from Website.models import *
 def verify_iamge(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
 
-    print('weryfikacja')
     # path to tesseract.exe
     pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\Szane\\PycharmProjects\\Tessercat\\tesseract.exe"
     coreImagePath = r'Website/static'
@@ -50,9 +49,7 @@ def verify_iamge(request, match_id):
     def get_screen_sender_summoner_name():
         playerName = cv2.resize(img_grey[25:52, 1125:1280], (0, 0), fx=1.8, fy=1.8)
         playerNameValue = pytesseract.image_to_string(playerName)
-        print(playerNameValue)
         playerNameValue = playerNameValue.split("\n")
-        print(playerNameValue)
         playerNameValue = list(filter(None, playerNameValue))
         return playerNameValue[0]
 
@@ -78,6 +75,7 @@ def verify_iamge(request, match_id):
         summonerNamesList = [champName for champName in summonerNamesList if champName not in champList]
         return summonerNamesList
 
+    # Function that assigns the summoner names taken from the screenshot to the matching teams from the base
     def assign_screen_summoner_names_to_teams(blueTeamDb, oneTeamScreen, redTeamDb, twoTeamScreen):
         blueTeamDb = set(blueTeamDb)
         oneTeamScreen = set(oneTeamScreen)
@@ -113,25 +111,6 @@ def verify_iamge(request, match_id):
 
         if len(validation) >= 3:
             return len(validation)
-        else:
-            return messages.error(request, "Błąd weryfikacji - Ilośc poprwanie wykrytych nazw jest mniejsza niż 3:")
-        # siteList.sort()
-        # print(siteList)
-        # screenList.sort()
-        # print(screenList)
-        # numberOfCorrectPlayers = 0
-        # try:
-        #     for iterator in range(5):
-        #         if siteList[iterator] == screenList[iterator]:
-        #             numberOfCorrectPlayers += 1
-        # except:
-        #     messages.error(request,
-        #                    'Problem z listą podczas validacji nazw przywoływaczy. Prześlij ponownie zrzut ekranu!')
-        #
-        # if numberOfCorrectPlayers >= 3:
-        #     return numberOfCorrectPlayers
-        # else:
-        #     return messages.error(request, "Błąd weryfikacji - Ilośc poprwanie wykrytych nazw jest mniejsza niż 3:")
 
     # Function that selects the winning team
     def get_winner_team(blueTeam, redTeam, summonerName, gameStatus):

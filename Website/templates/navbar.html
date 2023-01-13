@@ -39,13 +39,19 @@
                         Przeglądaj
                     </a>
                 </li>
-                <li class="nav-item active">
-                    <a href="{% url 'tournament' %}" class="nav-link">
+                <li class="nav-item dropdown">
+                    <a href="#" class="nav-link active" id="navbarDropdown" role="button"
+                       data-bs-toggle="dropdown" aria-expanded="false">
                         Turnieje
                     </a>
+                    <ul class="dropdown-menu text-center bg-warning" aria-labelledby="navbarDropdown">
+                        <li><a href="{% url 'open_tournament' %}" class="dropdown-item btn">Aktywne turnieje</a></li>
+                        <li><a href="{% url 'close_tournament' %}" class="dropdown-item btn">Zakończone turnieje</a>
+                        </li>
+                    </ul>
                 </li>
                 <li class="nav-item active">
-                    <a href="#" class="nav-link disabled">
+                    <a href="#" class="nav-link active">
                         Ranking
                     </a>
                 </li>
