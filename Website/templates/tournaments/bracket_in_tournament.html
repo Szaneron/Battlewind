@@ -1,0 +1,221 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+    <link rel="stylesheet" type="text/css" href="{% static  'js/jquery.bracket.min.css' %}"/>
+    <title>Title</title>
+
+    <style>
+        .horizontal-scrollable > .row {
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    </style>
+</head>
+<body style="background-color: #16181b">
+
+{% include 'navbar.html' %}
+<div class="container min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+    {% include 'messages.html' %}
+    <div class="row d-flex align-items-center bg-warning m-3 rounded-5">
+        <div class="col-md-3">
+            <img class="rounded mx-auto d-block align-middle" src="{{ tournament.image.url }}"
+                 style="max-height: 125px; max-width: 125px">
+        </div>
+        <div class="col-md-9">
+            <h1 class="text-center text-dark">{{ tournament.name }}</h1>
+        </div>
+    </div>
+
+    <div class="row text-center text-white m-3">
+        <div class="col-6">
+            <h5>Data: <b>{{ dateTime }}</b></h5>
+        </div>
+        <div class="col-6">
+            <h5>Godzina: <b> {{ hourTime }}</b></h5>
+        </div>
+    </div>
+    <hr class="text-white">
+    <div class="row m-3 list-group-horizontal align-items-center" style="font-size: large">
+        <div class="col-md-6">
+            <ul class="list-group list-group-horizontal">
+                <li class="list-group-item bg-warning border-0"><a href="{% url 'details_tournament' tournament.id %}"
+                                                                   class="text-dark"
+                                                                   style="text-decoration: none">Przegląd</a>
+                </li>
+                <li class="list-group-item bg-warning border-0"><a href="{% url 'teams_in_tournament' tournament.id %}"
+                                                                   class="text-dark"
+                                                                   style="text-decoration: none">Drużyny</a></li>
+                <li class="list-group-item bg-warning border-0"><a
+                        href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
+                        style="text-decoration: none">Drabinka</a></li>
+            </ul>
+        </div>
+        {% if currentDate == dateTime and currentTime < hourTime %}
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal">
+                    Zapisz się!
+                </button>
+            </div>
+        {% else %}
+            <div class="col-md-2 text-white">
+
+            </div>
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+        {% endif %}
+    </div>
+    <hr class="text-white">
+    <div class="row d-flex align-items-center">
+        <div class="col-md-12 text-white text-center ">
+            {% if matchObject.status == 'active' and matchObject.teamsInMatch.count == 2 %}
+                <a href="{% url 'show_match_in_tournament' tournament.id matchObject.id %}" class="btn btn-success">
+                    <h4>Przejdź do swojego meczu</h4>
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    <div class="horizontal-scrollable">
+        <div class="row m-2">
+            <div class="col-md-8">
+                {% if tournament.registeredTeams.count <= 4 %}
+                    <div id="bracketsmall">
+                        <div class="demosmall">
+                        </div>
+                    </div>
+                {% else %}
+                    <div id="bracketlarge">
+                        <div class="demolarge">
+                        </div>
+                    </div>
+                {% endif %}
+            </div>
+            <div class="col-md-4 d-block align-self-center text-center p-4">
+                <h3 class="text-white text-center">Wyniki:</h3>
+                <ul class="list-group border-0">
+
+                    <li class="list-group-item bg-warning border-0"><span style="float: left">1 miejsce:</span>
+                        {% if firstPlace != None %}
+                            {{ firstPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #CCCCCC"><span
+                            style="float: left">2 miejsce:</span>
+                        {% if secondPlace != None %}
+                            {{ secondPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #996633"><span
+                            style="float: left">3 miejsce:</span>
+                        {% if thirdPlace != None %}
+                            {{ thirdPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                    <li class="list-group-item border-0" style="background-color: #667788"><span
+                            style="float: left">4 miejsce:</span>
+                        {% if fourthPlace != None %}
+                            {{ fourthPlace }}
+                        {% else %}
+                            &nbsp;
+                        {% endif %} </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+
+    <script type="text/javascript" src="{% static 'js/jquery-3.6.3.min.js' %}"></script>
+    <script type="text/javascript" src="{% static 'js/jquery.bracket.min.js' %}"></script>
+    <script type="text/javascript">
+        var teams =
+        {{ teamList|safe }}
+        var results =
+        {{ resusltsList|safe }}
+
+        {% if tournament.registeredTeams.count <= 4 %}
+            var smallbracket = {
+                teams: [
+                    [teams[0], teams[1]],
+                    [teams[2], teams[3]]
+                ],
+                results: [
+                    [
+                        [[results[0], results[1]], [results[2], results[3]]],
+                        [[results[4], results[5]], [results[6], results[7]]]
+                    ]
+                ]
+            };
+
+            var resizeParameters = {
+                teamWidth: 150,
+                scoreWidth: 30,
+                matchMargin: 30,
+                roundMargin: 60,
+                init: smallbracket
+            };
+
+            function updateResizeDemo() {
+                $('#bracketsmall .demosmall').bracket(resizeParameters);
+            }
+
+            $(updateResizeDemo)
+            $('#bracketsmall .demosmall').bracket({
+                init: smallbracket,
+            })
+        {% else %}
+            var largebracket = {
+                teams: [
+                    [teams[0], teams[1]],
+                    [teams[2], teams[3]],
+                    [teams[4], teams[5]],
+                    [teams[6], teams[7]]
+                ],
+                results: [
+                    [
+                        [[results[0], results[1]], [results[2], results[3]], [results[4], results[5]], [results[6], results[7]]],
+                        [[results[8], results[9]], [results[10], results[11]]],
+                        [[results[12], results[13]], [results[14], results[15]]]
+                    ]
+                ]
+            };
+
+            var resizeParameters = {
+                teamWidth: 150,
+                scoreWidth: 30,
+                matchMargin: 30,
+                roundMargin: 60,
+                init: largebracket
+            };
+
+            function updateResizeDemo() {
+                $('#bracketlarge .demolarge').bracket(resizeParameters);
+            }
+
+            $(updateResizeDemo)
+            $('#bracketlarge .demolarge').bracket({
+                init: largebracket,
+            })
+        {% endif %}
+
+    </script>
+
+</div>
+</body>
+</html>

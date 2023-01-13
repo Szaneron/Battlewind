@@ -145,4 +145,4 @@ STATICFILES_DIRS = [
     os.path.join(BASE_DIR, 'Website/static')
 ]
 
-MEDIA_ROOT = os.path.join(BASE_DIR, 'Website/static/images/profiles_pictures')
+MEDIA_ROOT = os.path.join(BASE_DIR, 'Website/static/images')

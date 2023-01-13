@@ -41,18 +41,33 @@
                 <li class="list-group-item bg-warning border-0"><a href="{% url 'teams_in_tournament' tournament.id %}"
                                                                    class="text-dark"
                                                                    style="text-decoration: none">Drużyny</a></li>
-                <li class="list-group-item bg-warning border-0"><a href="#" class="text-dark"
-                                                                   style="text-decoration: none">Drabinka</a></li>
+                <li class="list-group-item bg-warning border-0"><a
+                        href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
+                        style="text-decoration: none">Drabinka</a></li>
             </ul>
         </div>
-        <div class="col-md-4">
-            <h5>Zapisane druzyny: {{ tournament.registeredTeams.count }} / {{ tournament.maxTeams }}</h5>
-        </div>
-        <div class="col-md-2">
-            <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">
-                Zapisz się!
-            </button>
-        </div>
+        {% if currentDate == dateTime and currentTime < hourTime %}
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+            <div class="col-md-2">
+                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal"
+                        data-bs-target="#exampleModal">
+                    Zapisz się!
+                </button>
+            </div>
+        {% else %}
+            <div class="col-md-2 text-white">
+
+            </div>
+            <div class="col-md-4 text-white">
+                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                    drużyny: {{ tournament.registeredTeams.count }}
+                    / {{ tournament.maxTeams }}</h6>
+            </div>
+        {% endif %}
     </div>
     <hr>
     <div class="row m-3">
