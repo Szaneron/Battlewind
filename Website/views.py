@@ -477,16 +477,12 @@ def show_tournament_bracket(request, tournament_id):
                         counter += 1
 
                     lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
-                    print(lastTeam)
                     lastTeamObject = Team.objects.get(teamName=lastTeam)
 
                     nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
                                                                  teamsInMatch__teamsInMatch=None)
-                    print('to to:')
-                    print(nextEmptyCreatedMatch[0])
                     nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
                     nextEmptyCreatedMatch[0].save()
-                    print(lastTeamObject)
             else:
                 matchCounter = 0
                 counter = 1
@@ -522,22 +518,17 @@ def show_tournament_bracket(request, tournament_id):
                         counter += 1
 
                     lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
-                    print(lastTeam)
                     lastTeamObject = Team.objects.get(teamName=lastTeam)
 
                     nextEmptyCreatedMatch = Match.objects.filter(tournamentName=tournament.id,
                                                                  teamsInMatch__teamsInMatch=None)
-                    print('to to:')
-                    print(nextEmptyCreatedMatch[0])
                     nextEmptyCreatedMatch[0].teamsInMatch.add(lastTeamObject.id)
                     nextEmptyCreatedMatch[0].save()
-                    print(lastTeamObject)
 
             return redirect('bracket_in_tournament', tournament.id)
 
         else:
             if tournament.registeredTeams.count() <= 4:
-                print('mała drabinka')
 
                 def set_status_for_empty_matches():
                     for match in matches:
@@ -548,7 +539,6 @@ def show_tournament_bracket(request, tournament_id):
                 set_status_for_empty_matches()
 
                 def set_matches_with_one_team():
-                    print('Robimy check solo')
                     for match in matches:
                         if match.teamsInMatch.count() == 1:
                             currentMatch = Match.objects.get(matchName=match.matchName, tournamentName=tournament.id)
@@ -588,7 +578,6 @@ def show_tournament_bracket(request, tournament_id):
 
                     return results
             else:
-                print('duża drabinka')
 
                 def set_status_for_empty_matches():
                     for match in matches:
@@ -599,7 +588,6 @@ def show_tournament_bracket(request, tournament_id):
                 set_status_for_empty_matches()
 
                 def set_matches_with_one_team():
-                    print('Robimy check solo')
                     for match in matches:
                         if match.teamsInMatch.count() == 1:
                             currentMatch = Match.objects.get(matchName=match.matchName)
@@ -650,9 +638,7 @@ def show_tournament_bracket(request, tournament_id):
 
             resusltsList = get_match_results()
             teamList = json.dumps(teamList)
-            print(teamList)
             resusltsList = json.dumps(resusltsList)
-            print(resusltsList)
 
             def if_team_is_registered():
                 for name in teams:
@@ -687,17 +673,24 @@ def show_tournament_bracket(request, tournament_id):
                 def get_teams_for_summary():
                     if tournament.registeredTeams.count() <= 4:
                         summaryListOfTeams = []
-                        firstPlace = matches.get(matchName=3, tournamentName=tournament.id)
-                        firstPlace = firstPlace.winner
+                        firstPlace = matches.get(matchName=3, tournamentName=tournament.id).winner
                         summaryListOfTeams.append(firstPlace)
-                        secondPlace = matches.get(matchName=3, tournamentName=tournament.id)
-                        secondPlace = secondPlace.losser
+                        secondPlace = matches.get(matchName=3, tournamentName=tournament.id).losser
                         summaryListOfTeams.append(secondPlace)
-                        thirdPlace = matches.get(matchName=4, tournamentName=tournament.id)
-                        thirdPlace = thirdPlace.winner
+                        thirdPlace = matches.get(matchName=4, tournamentName=tournament.id).winner
                         summaryListOfTeams.append(thirdPlace)
-                        fourthPlace = matches.get(matchName=4, tournamentName=tournament.id)
-                        fourthPlace = fourthPlace.losser
+                        fourthPlace = matches.get(matchName=4, tournamentName=tournament.id).losser
+                        summaryListOfTeams.append(fourthPlace)
+                        return summaryListOfTeams
+                    elif tournament.registeredTeams.count() > 4:
+                        summaryListOfTeams = []
+                        firstPlace = matches.get(matchName=7, tournamentName=tournament.id).winner
+                        summaryListOfTeams.append(firstPlace)
+                        secondPlace = matches.get(matchName=7, tournamentName=tournament.id).losser
+                        summaryListOfTeams.append(secondPlace)
+                        thirdPlace = matches.get(matchName=8, tournamentName=tournament.id).winner
+                        summaryListOfTeams.append(thirdPlace)
+                        fourthPlace = matches.get(matchName=8, tournamentName=tournament.id).losser
                         summaryListOfTeams.append(fourthPlace)
                         return summaryListOfTeams
 
@@ -706,7 +699,6 @@ def show_tournament_bracket(request, tournament_id):
                 secondPlace = summaryListOfTeams[1]
                 thirdPlace = summaryListOfTeams[2]
                 fourthPlace = summaryListOfTeams[3]
-                print(firstPlace)
 
                 def end_tournament():
                     completedMatches = matches.filter(status='completed')
@@ -779,9 +771,7 @@ def show_match_in_tournament(request, tournament_id, match_id):
                         match.save()
                         if match.winner == winnerTeamName:
                             if tournament.registeredTeams.count() <= 4:
-                                print(match.matchName)
                                 if match.matchName == 1:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
                                     nextMatch.status = nextMatch.ACTIVE
@@ -795,7 +785,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                                     nextMatch.save()
 
                             elif tournament.registeredTeams.count() > 4:
-                                print(match.matchName)
                                 if match.matchName == 1:
                                     team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
@@ -841,9 +830,7 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
                         if match.losser == losserTeamName:
                             if tournament.registeredTeams.count() <= 4:
-                                print(match.matchName)
                                 if match.matchName == 1 and tournament.registeredTeams.count() < 4:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.teamsInMatch.add(team.id)
@@ -851,7 +838,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                                     nextMatch.status = nextMatch.COMPLETED
                                     nextMatch.save()
                                 if match.matchName == 1 and tournament.registeredTeams.count() == 4:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.status = nextMatch.ACTIVE
@@ -865,7 +851,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                                     nextMatch.save()
 
                             elif tournament.registeredTeams.count() > 4:
-                                print(match.matchName)
                                 if match.matchName == 5 and tournament.registeredTeams.count() > 6:
                                     team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
@@ -894,9 +879,7 @@ def show_match_in_tournament(request, tournament_id, match_id):
                         match.save()
                         if match.winner == winnerTeamName:
                             if tournament.registeredTeams.count() <= 4:
-                                print(match.matchName)
                                 if match.matchName == 1:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
                                     nextMatch.status = nextMatch.ACTIVE
@@ -910,7 +893,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                                     nextMatch.save()
 
                             elif tournament.registeredTeams.count() > 4:
-                                print(match.matchName)
                                 if match.matchName == 1:
                                     team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
@@ -957,7 +939,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                         if match.losser == losserTeamName:
                             if tournament.registeredTeams.count() <= 4:
                                 if match.matchName == 1 and tournament.registeredTeams.count() < 4:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.teamsInMatch.add(team.id)
@@ -965,7 +946,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
                                     nextMatch.status = nextMatch.COMPLETED
                                     nextMatch.save()
                                 if match.matchName == 1 and tournament.registeredTeams.count() == 4:
-                                    print('przenoszenie')
                                     team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.status = nextMatch.ACTIVE
