@@ -431,6 +431,38 @@ def show_tournament_bracket(request, tournament_id):
     currentTime = pd.to_datetime(currentTime).time()
     currentTime = currentTime.strftime("%H:%M:%S")
 
+    def create_bracket_4(matchCounter, counter):
+        for team1, team2 in grouped(tournamentTeamList, 2):
+            matchName = counter
+            teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            teams.teamsInMatch.add(team1, team2)
+            teams.save
+            matchCounter += 1
+            counter += 1
+
+        while matchCounter != 4:
+            matchName = counter
+            teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            teams.save()
+            matchCounter += 1
+            counter += 1
+
+    def create_bracket_8(matchCounter, counter):
+        for team1, team2 in grouped(tournamentTeamList, 2):
+            matchName = counter
+            teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            teams.teamsInMatch.add(team1, team2)
+            teams.save
+            matchCounter += 1
+            counter += 1
+
+        while matchCounter != 8:
+            matchName = counter
+            teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
+            teams.save()
+            matchCounter += 1
+            counter += 1
+
     if currentDate <= dateTime and currentTime < hourTime:
         messages.error(request, 'Drabinka nie jest jeszcze gotowa, poczekaj na rozpoczęcie turnieju')
     else:
@@ -446,35 +478,9 @@ def show_tournament_bracket(request, tournament_id):
                 matchCounter = 0
                 counter = 1
                 if len(tournamentTeamList) % 2 == 0:
-                    for team1, team2 in grouped(tournamentTeamList, 2):
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.teamsInMatch.add(team1, team2)
-                        teams.save
-                        matchCounter += 1
-                        counter += 1
-
-                    while matchCounter != 4:
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.save()
-                        matchCounter += 1
-                        counter += 1
+                    create_bracket_4(matchCounter, counter)
                 else:
-                    for team1, team2 in grouped(tournamentTeamList, 2):
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.teamsInMatch.add(team1, team2)
-                        teams.save
-                        matchCounter += 1
-                        counter += 1
-
-                    while matchCounter != 4:
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.save()
-                        matchCounter += 1
-                        counter += 1
+                    create_bracket_4(matchCounter, counter)
 
                     lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
                     lastTeamObject = Team.objects.get(teamName=lastTeam)
@@ -487,35 +493,9 @@ def show_tournament_bracket(request, tournament_id):
                 matchCounter = 0
                 counter = 1
                 if len(tournamentTeamList) % 2 == 0:
-                    for team1, team2 in grouped(tournamentTeamList, 2):
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.teamsInMatch.add(team1, team2)
-                        teams.save
-                        matchCounter += 1
-                        counter += 1
-
-                    while matchCounter != 8:
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.save()
-                        matchCounter += 1
-                        counter += 1
+                    create_bracket_8(matchCounter, counter)
                 else:
-                    for team1, team2 in grouped(tournamentTeamList, 2):
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.teamsInMatch.add(team1, team2)
-                        teams.save
-                        matchCounter += 1
-                        counter += 1
-
-                    while matchCounter != 8:
-                        matchName = counter
-                        teams = Match.objects.create(tournamentName=tournament, matchName=matchName)
-                        teams.save()
-                        matchCounter += 1
-                        counter += 1
+                    create_bracket_8(matchCounter, counter)
 
                     lastTeam = str(tournamentTeamList[len(tournamentTeamList) - 1])
                     lastTeamObject = Team.objects.get(teamName=lastTeam)
@@ -590,7 +570,7 @@ def show_tournament_bracket(request, tournament_id):
                 def set_matches_with_one_team():
                     for match in matches:
                         if match.teamsInMatch.count() == 1:
-                            currentMatch = Match.objects.get(matchName=match.matchName)
+                            currentMatch = Match.objects.get(matchName=match.matchName, tournamentName=tournament.id)
                             teamObject = currentMatch.teamsInMatch.all().values_list('teamName')
                             team = Team.objects.get(teamName=teamObject[0][0])
                             if match.matchName == 4:
@@ -660,13 +640,16 @@ def show_tournament_bracket(request, tournament_id):
                 teamRegisteredByUser = get_team_registered_by_user()
 
                 def get_match_object():
-                    for _ in matches:
-                        for match in matches:
-                            if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id,
-                                                         teamsInMatch__status='active'):
-                                matchObject = match
+                    if teamRegisteredByUser:
+                        for _ in matches:
+                            for match in matches:
+                                if match.teamsInMatch.filter(teamsInMatch__teamsInMatch=teamRegisteredByUser.id,
+                                                             teamsInMatch__status='active'):
+                                    matchObject = match
 
-                                return matchObject
+                                    return matchObject
+                                else:
+                                    pass
 
                 matchObject = get_match_object()
 
@@ -711,8 +694,8 @@ def show_tournament_bracket(request, tournament_id):
 
                 end_tournament()
 
-                context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser,
-                           'matchObject': matchObject, 'teamList': teamList, 'resusltsList': resusltsList,
+                context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser, 'teamList': teamList,
+                           'resusltsList': resusltsList, 'matchObject': matchObject,
                            'dateTime': dateTime, "hourTime": hourTime, 'firstPlace': firstPlace,
                            'secondPlace': secondPlace, 'thirdPlace': thirdPlace, 'fourthPlace': fourthPlace}
 
@@ -732,20 +715,36 @@ def show_match_in_tournament(request, tournament_id, match_id):
     match = get_object_or_404(Match, pk=match_id)
     requestTeam = Team.objects.filter(createdBy=request.user)
     teamNames = [team for team in match.teamsInMatch.all()]
-    print(teamNames)
     teamNamesList = [team.teamName for team in teamNames]
-    print(teamNamesList)
     teamBlue = Team.objects.get(teamName=teamNamesList[0])
     teamRed = Team.objects.get(teamName=teamNamesList[1])
     blueUsers = User.objects.filter(teams__teamName=teamNamesList[0])
     redUsers = User.objects.filter(teams__teamName=teamNamesList[1])
 
+    def player_stats_win(team):
+        for member in team.members.all():
+            member.profile.gamesPlayed += 1
+            member.profile.gamesWon += 1
+            member.profile.save()
+
+    def player_stats_loss(team):
+        for member in team.members.all():
+            member.profile.gamesPlayed += 1
+            member.profile.gamesLost += 1
+            member.profile.save()
+
+    def bracket_move(nextMatch, team):
+        nextMatch.status = nextMatch.ACTIVE
+        nextMatch.teamsInMatch.add(team.id)
+        nextMatch.save()
+
     form = UploadImageToVeryficate(instance=Match)
+
     if match.status == 'active':
-        if request.method == 'POST':
-            form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
-            if form.is_valid():
-                try:
+        try:
+            if request.method == 'POST':
+                form = UploadImageToVeryficate(request.POST, request.FILES, instance=match)
+                if form.is_valid():
                     form.save()
                     winnerTeamName = image_verification.verify_iamge(request, match.id)
 
@@ -764,111 +763,74 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
                     if teamNamesList[0] == winnerTeamName:
                         match.pointBlue = 1
-
                         match.status = Match.COMPLETED
                         match.winner = winnerTeamName
                         match.losser = losserTeamName
                         match.save()
+
                         if match.winner == winnerTeamName:
+                            team = Team.objects.get(teamName=winnerTeamName)
+                            player_stats_win(team)
+
                             if tournament.registeredTeams.count() <= 4:
                                 if match.matchName == 1:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                             elif tournament.registeredTeams.count() > 4:
                                 if match.matchName == 1:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 3 and tournament.registeredTeams.count() == 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 3 and tournament.registeredTeams.count() > 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=6, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 4:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=6, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 5:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                         if match.losser == losserTeamName:
+                            team = Team.objects.get(teamName=losserTeamName)
+                            player_stats_loss(team)
+
                             if tournament.registeredTeams.count() <= 4:
                                 if match.matchName == 1 and tournament.registeredTeams.count() < 4:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.teamsInMatch.add(team.id)
                                     nextMatch.winner = team.teamName
                                     nextMatch.status = nextMatch.COMPLETED
                                     nextMatch.save()
                                 if match.matchName == 1 and tournament.registeredTeams.count() == 4:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                             elif tournament.registeredTeams.count() > 4:
                                 if match.matchName == 5 and tournament.registeredTeams.count() > 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 5 and tournament.registeredTeams.count() <= 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.winner = team.teamName
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 6 and tournament.registeredTeams.count() > 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                         return redirect('bracket_in_tournament', tournament.id)
 
                     elif teamNamesList[1] == winnerTeamName:
@@ -877,112 +839,76 @@ def show_match_in_tournament(request, tournament_id, match_id):
                         match.losser = losserTeamName
                         match.status = Match.COMPLETED
                         match.save()
+
                         if match.winner == winnerTeamName:
+                            team = Team.objects.get(teamName=winnerTeamName)
+                            player_stats_win(team)
                             if tournament.registeredTeams.count() <= 4:
                                 if match.matchName == 1:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=3, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                             elif tournament.registeredTeams.count() > 4:
                                 if match.matchName == 1:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=5, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 3 and tournament.registeredTeams.count() == 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 3 and tournament.registeredTeams.count() > 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=6, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 4:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=6, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 5:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 6:
-                                    team = Team.objects.get(teamName=winnerTeamName)
                                     nextMatch = Match.objects.get(matchName=7, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                         if match.losser == losserTeamName:
+                            team = Team.objects.get(teamName=losserTeamName)
+                            player_stats_loss(team)
                             if tournament.registeredTeams.count() <= 4:
                                 if match.matchName == 1 and tournament.registeredTeams.count() < 4:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
                                     nextMatch.teamsInMatch.add(team.id)
                                     nextMatch.winner = team.teamName
                                     nextMatch.status = nextMatch.COMPLETED
                                     nextMatch.save()
                                 if match.matchName == 1 and tournament.registeredTeams.count() == 4:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 2:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=4, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
 
                             elif tournament.registeredTeams.count() > 4:
                                 if match.matchName == 5 and tournament.registeredTeams.count() > 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 5 and tournament.registeredTeams.count() <= 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.winner = team.teamName
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                                 elif match.matchName == 6:
-                                    team = Team.objects.get(teamName=losserTeamName)
                                     nextMatch = Match.objects.get(matchName=8, tournamentName=tournament.id)
-                                    nextMatch.status = nextMatch.ACTIVE
-                                    nextMatch.teamsInMatch.add(team.id)
-                                    nextMatch.save()
+                                    bracket_move(nextMatch, team)
                     else:
                         messages.error(request, 'Nie udało się dodać wyniku')
 
                     return redirect('bracket_in_tournament', tournament.id)
-                except:
-                    messages.error(request, 'Screen nie został poprawnie zwryfikowany, prześlij ponownie plik')
+        except Exception as e:
+            print('Error: ', e)
+            messages.error(request, 'Screen nie został poprawnie zwryfikowany, prześlij ponownie plik')
+
 
     else:
         messages.error(request, 'Mecz zakończony')

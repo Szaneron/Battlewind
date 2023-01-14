@@ -1,6 +1,7 @@
+from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.forms import ModelForm
-from django import forms
+
 from .models import *
 
 
@@ -32,7 +33,7 @@ class UploadImageToVeryficate(ModelForm):
         fields = ['afterGameImage']
 
         widgets = {
-            'afterGameImage': forms.FileInput(attrs={'class': 'form-control', 'label': ''})
+            'afterGameImage': forms.FileInput(attrs={'class': 'form-control', 'label': '', 'required': True})
         }
 
     def __init__(self, *args, **kwargs):

@@ -104,3 +104,6 @@ class Match(models.Model):
     pointRed = models.IntegerField(default=0)
     status = models.CharField(max_length=25, choices=CHOICES_STATUS, default=ACTIVE)
     afterGameImage = models.ImageField(null=True, blank=True, upload_to='matchEnds_images')
+
+    def __str__(self):
+        return self.tournamentName.name
