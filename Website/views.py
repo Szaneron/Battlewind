@@ -316,7 +316,7 @@ def show_closed_tournaments(request):
     return render(request, 'tournaments/tournament_close.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def details_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
@@ -339,20 +339,43 @@ def details_tournament(request, tournament_id):
 
     teamsInTournament = check_teams()
 
+    def get_registered_teams_summoner_names_list():
+        tour = tournament.registeredTeams.all()
+        list = []
+        for t in tour:
+            for x in t.members.all():
+                list.append(x.profile.summonerName)
+
+        return list
+
+    registeredMembers = get_registered_teams_summoner_names_list()
     if request.method == 'POST':
         if 'join' in request.POST:
 
             if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
-                if teamsInTournament == 0:
-                    if tournament.registeredTeams.count() < 4:
-                        tournament.registeredTeams.add(team.id)
-                        tournament.save()
-                        messages.success(request, "Drużyna dołączyła do turnieju")
+                members = team.members.all()
+                teamSummonerNameList = []
+                summnerNameCounter = 0
+                for member in members:
+                    teamSummonerNameList.append(member.profile.summonerName)
+
+                for elem in teamSummonerNameList:
+                    if elem in registeredMembers:
+                        summnerNameCounter += 1
+
+                if summnerNameCounter == 0:
+                    if teamsInTournament == 0:
+                        if tournament.registeredTeams.count() < tournament.maxTeams:
+                            tournament.registeredTeams.add(team.id)
+                            tournament.save()
+                            messages.success(request, "Drużyna dołączyła do turnieju")
+                        else:
+                            messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
                     else:
-                        messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+                        messages.error(request, 'Zapisałeś już jedną swoją drużynę')
                 else:
-                    messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+                    messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
@@ -361,7 +384,7 @@ def details_tournament(request, tournament_id):
     return render(request, 'tournaments/tournament_view.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def show_tournament_teams(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
@@ -374,6 +397,17 @@ def show_tournament_teams(request, tournament_id):
     currentTime = pd.to_datetime(currentTime).time()
     currentTime = currentTime.strftime("%H:%M:%S")
 
+    def get_registered_teams_summoner_names_list():
+        tour = tournament.registeredTeams.all()
+        list = []
+        for t in tour:
+            for x in t.members.all():
+                list.append(x.profile.summonerName)
+
+        return list
+
+    registeredMembers = get_registered_teams_summoner_names_list()
+
     def check_teams():
         teamInfo = ['name', 0]
         for _ in teams:
@@ -382,6 +416,7 @@ def show_tournament_teams(request, tournament_id):
                 teamInfo[1] = 1
         return teamInfo
 
+    teamsInTournament = check_teams()
     if request.method == 'POST':
         if 'leave' in request.POST:
             if currentDate <= dateTime and currentTime < hourTime:
@@ -395,11 +430,18 @@ def show_tournament_teams(request, tournament_id):
         if 'join' in request.POST:
             if currentDate <= dateTime and currentTime < hourTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
-                if team.members.count() != 5:
-                    messages.error(request, 'Drużyna nie posaida 5 zawodników')
-                else:
-                    teamInTournament = check_teams()[1]
-                    if teamInTournament == 0:
+                members = team.members.all()
+                teamSummonerNameList = []
+                summnerNameCounter = 0
+                for member in members:
+                    teamSummonerNameList.append(member.profile.summonerName)
+
+                for elem in teamSummonerNameList:
+                    if elem in registeredMembers:
+                        summnerNameCounter += 1
+
+                if summnerNameCounter == 0:
+                    if teamsInTournament == 0:
                         if tournament.registeredTeams.count() < tournament.maxTeams:
                             tournament.registeredTeams.add(team.id)
                             tournament.save()
@@ -408,6 +450,8 @@ def show_tournament_teams(request, tournament_id):
                             messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
                     else:
                         messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+                else:
+                    messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
@@ -417,7 +461,7 @@ def show_tournament_teams(request, tournament_id):
     return render(request, 'tournaments/teams_in_tournament.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def show_tournament_bracket(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     matches = Match.objects.filter(tournamentName=tournament.id)
@@ -692,7 +736,8 @@ def show_tournament_bracket(request, tournament_id):
                         tournament.status = tournament.COMPLETED
                         tournament.save()
 
-                end_tournament()
+                if matches:
+                    end_tournament()
 
                 context = {'tournament': tournament, 'teamRegisteredByUser': teamRegisteredByUser, 'teamList': teamList,
                            'resusltsList': resusltsList, 'matchObject': matchObject,
@@ -709,7 +754,7 @@ def show_tournament_bracket(request, tournament_id):
     return render(request, 'tournaments/bracket_in_tournament.html', context)
 
 
-@login_required
+@login_required(login_url='login')
 def show_match_in_tournament(request, tournament_id, match_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     match = get_object_or_404(Match, pk=match_id)
