@@ -10,6 +10,10 @@ class CreateUserForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+    widgets = {
+        'email': forms.TextInput(attrs={'required': True})
+    }
+
 
 class EditUserProfileSettingsForm(ModelForm):
     class Meta:

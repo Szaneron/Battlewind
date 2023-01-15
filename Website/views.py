@@ -66,7 +66,7 @@ def login_page(request):
             else:
                 return redirect('home')
         else:
-            messages.info(request, 'Username or password is incorrect')
+            messages.error(request, 'Username or password is incorrect')
 
     context = {}
     return render(request, 'accounts/login.html', context)
@@ -918,3 +918,9 @@ def show_match_in_tournament(request, tournament_id, match_id):
                'redUsers': redUsers, 'requestTeam': requestTeam}
 
     return render(request, 'tournaments/match_view.html', context)
+
+
+def show_ranking_view(request):
+    context = {}
+
+    return render(request, 'ranking/ranking_view.html', context)

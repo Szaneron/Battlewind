@@ -51,7 +51,7 @@
                     </ul>
                 </li>
                 <li class="nav-item active">
-                    <a href="#" class="nav-link active">
+                    <a href="{% url 'ranking-view' %}" class="nav-link active">
                         Ranking
                     </a>
                 </li>
@@ -73,12 +73,12 @@
                 {% else %}
                     <li class="nav-item active m-2">
                         <button type="button" class="btn btn-warning" onclick="location.href='{% url 'login' %}'">
-                            Zaloguj
+                            Logowanie
                         </button>
                     </li>
                     <li class="nav-item activem m-2">
                         <button type="button" class="btn btn-warning" onclick="location.href='{% url 'register' %}'">
-                            Zarejestruj
+                            Rejestracja
                         </button>
                     </li>
                 {% endif %}
