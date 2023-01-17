@@ -10,6 +10,10 @@ class CreateUserForm(UserCreationForm):
         model = User
         fields = ['username', 'email', 'password1', 'password2']
 
+    widgets = {
+        'email': forms.TextInput(attrs={'required': True})
+    }
+
 
 class EditUserProfileSettingsForm(ModelForm):
     class Meta:
@@ -17,7 +21,8 @@ class EditUserProfileSettingsForm(ModelForm):
         fields = ['summonerName', 'profilePic']
 
         widgets = {
-            'summonerName': forms.TextInput(attrs={'class': 'form-control'})
+            'summonerName': forms.TextInput(attrs={'class': 'form-control'}),
+            'profilePic': forms.FileInput(attrs={'class': 'form-control', 'label': ''})
         }
 
 

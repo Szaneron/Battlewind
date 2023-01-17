@@ -16,14 +16,14 @@
             margin: 0;
             padding: 0;
             height: 100%;
-            background: #7abecc !important;
+            background: #3b424a !important;
         }
 
         .user_card {
-            width: 350px;
+            width: 500px;
             margin-top: auto;
             margin-bottom: auto;
-            background: #74cfbf;
+            background: #ffc107;
             position: relative;
             display: flex;
             justify-content: center;
@@ -47,7 +47,6 @@
 
         .login_btn {
             width: 100%;
-            background: #33ccff !important;
             color: white !important;
         }
 
@@ -61,7 +60,7 @@
         }
 
         .input-group-text {
-            background: #f7ba5b !important;
+            background: #212529 !important;
             color: white !important;
             border: 0 !important;
             border-radius: 0.25rem 0 0 0.25rem !important;
@@ -83,13 +82,14 @@
 
 </head>
 <body>
-<div class="container h-100">
+<div class="container h-100" style="padding-top: 80px">
+    {% include 'navbar.html' %}
     <div class="d-flex justify-content-center h-100">
         <div class="user_card">
             <div class="d-flex justify-content-center">
 
 
-                <h3 id="form-title">LOGIN</h3>
+                <h3 id="form-title" class="text-dark">LOGOWANIE</h3>
             </div>
             <div class="d-flex justify-content-center form_container">
                 <form method="POST" action="">
@@ -98,28 +98,27 @@
                         <div class="input-group-append">
                             <span class="input-group-text"><i class="fas fa-user"></i></span>
                         </div>
-                        <input type="text" name="username" placeholder="Username..." class="form-control">
+                        <input type="text" name="username" placeholder="Nazwa użytkownika..." class="form-control">
                     </div>
                     <div class="input-group mb-2">
                         <div class="input-group-append">
                             <span class="input-group-text"><i class="fas fa-key"></i></span>
                         </div>
-                        <input type="password" name="password" placeholder="Password..." class="form-control">
+                        <input type="password" name="password" placeholder="Hasło..." class="form-control">
                     </div>
 
                     <div class="d-flex justify-content-center mt-3 login_container">
-                        <input class="btn login_btn" type="submit" value="Login">
+                        <input class="btn login_btn bg-dark" type="submit" value="Zaloguj się">
                     </div>
                 </form>
 
             </div>
-            {% for message in messages %}
-                <p id="messages">{{ message }}</p>
-            {% endfor %}
+            <div class="mt-3">{% include 'messages.html' %}</div>
 
-            <div class="mt-4">
+
+            <div class="mt-3">
                 <div class="d-flex justify-content-center links">
-                    Don't have an account? <a href="{% url 'register' %}" class="ml-2">Sign Up</a>
+                    Nie masz konta? <a href="{% url 'register' %}" class="ml-2">Zarejestruj się</a>
                 </div>
 
             </div>

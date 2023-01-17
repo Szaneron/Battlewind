@@ -56,28 +56,14 @@
                         style="text-decoration: none">Drabinka</a></li>
             </ul>
         </div>
-        {% if currentDate == dateTime and currentTime < hourTime %}
-            <div class="col-md-4 text-white">
-                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
-                    drużyny: {{ tournament.registeredTeams.count }}
-                    / {{ tournament.maxTeams }}</h6>
-            </div>
-            <div class="col-md-2">
-                <button type="button" class="btn btn-primary btn-lg" data-bs-toggle="modal"
-                        data-bs-target="#exampleModal">
-                    Zapisz się!
-                </button>
-            </div>
-        {% else %}
-            <div class="col-md-2 text-white">
+        <div class="col-md-2 text-white">
 
-            </div>
-            <div class="col-md-4 text-white">
-                <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
-                    drużyny: {{ tournament.registeredTeams.count }}
-                    / {{ tournament.maxTeams }}</h6>
-            </div>
-        {% endif %}
+        </div>
+        <div class="col-md-4 text-white">
+            <h6 class="p-3 mb-1 bg-secondary bg-gradient text-white rounded-5" style="float: right">Zapisane
+                drużyny: {{ tournament.registeredTeams.count }}
+                / {{ tournament.maxTeams }}</h6>
+        </div>
     </div>
     <hr class="text-white">
     <div class="row d-flex align-items-center">
