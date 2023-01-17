@@ -21,7 +21,8 @@ class EditUserProfileSettingsForm(ModelForm):
         fields = ['summonerName', 'profilePic']
 
         widgets = {
-            'summonerName': forms.TextInput(attrs={'class': 'form-control'})
+            'summonerName': forms.TextInput(attrs={'class': 'form-control'}),
+            'profilePic': forms.FileInput(attrs={'class': 'form-control', 'label': ''})
         }
 
 

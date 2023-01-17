@@ -770,12 +770,14 @@ def show_match_in_tournament(request, tournament_id, match_id):
         for member in team.members.all():
             member.profile.gamesPlayed += 1
             member.profile.gamesWon += 1
+            member.profile.rating += 10
             member.profile.save()
 
     def player_stats_loss(team):
         for member in team.members.all():
             member.profile.gamesPlayed += 1
             member.profile.gamesLost += 1
+            member.profile.rating += 5
             member.profile.save()
 
     def bracket_move(nextMatch, team):
@@ -966,6 +968,39 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
 
 def show_ranking_view(request):
-    context = {}
+    allProfiles = Profile.objects.all().order_by('-rating', '-gamesPlayed')
+    rankingTable = []
+
+    def get_number_of_users_list():
+        list = []
+        for element in range(1, len(allProfiles) + 1):
+            list.append(element)
+        return list
+
+    numbersList = get_number_of_users_list()
+
+    def check_winrate():
+        list = []
+        for profile in allProfiles:
+            if profile.gamesPlayed != 0:
+                list.append(str("%.0f" % ((profile.gamesWon / profile.gamesPlayed) * 100) + '%'))
+            else:
+                list.append(0)
+        return list
+
+    winratePercentageList = check_winrate()
+
+    for iterator, profile, winrate in zip(numbersList, allProfiles, winratePercentageList):
+        innerList = []
+        innerList.append(iterator)
+        innerList.append(profile.user.username)
+        innerList.append(winrate)
+        innerList.append(profile.gamesPlayed)
+        innerList.append(profile.gamesWon)
+        innerList.append(profile.gamesLost)
+        innerList.append(profile.rating)
+        rankingTable.append(innerList)
+
+    context = {'rankingTable': rankingTable}
 
     return render(request, 'ranking/ranking_view.html', context)

@@ -11,6 +11,7 @@ class Profile(models.Model):
     gamesPlayed = models.IntegerField(default=0, null=False)
     gamesWon = models.IntegerField(default=0, null=False)
     gamesLost = models.IntegerField(default=0, null=False)
+    rating = models.IntegerField(default=0, null=False)
 
     def __str__(self):
         return str(self.user)
