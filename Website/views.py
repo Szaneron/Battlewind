@@ -104,19 +104,13 @@ def profile_page(request):
             team.members.add(request.user)
             team.save()
             messages.success(request, 'Stworzono drużynę')
-            # userprofile = request.user.userprofile
-            # userprofile.active_team_id = team.id
-            # userprofile.save()
             return redirect('profile')
         else:
             messages.error(request, 'Wprowadzona nazwa jest juz zajęta')
     else:
         form = CreateTeamForm(request.user)
 
-    context = {'form': form,
-               'winratePercentage': winratePercentage,
-               'teams': teams,
-               'invitations': invitations}
+    context = {'form': form, 'winratePercentage': winratePercentage, 'teams': teams, 'invitations': invitations}
     return render(request, 'accounts/profile.html', context)
 
 

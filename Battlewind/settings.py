@@ -10,10 +10,11 @@ For the full list of settings and their values, see
 https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
-from pathlib import Path
-from dotenv import load_dotenv, find_dotenv
 import os
+from pathlib import Path
+
 from django.contrib.messages import constants as messages
+from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
@@ -44,6 +45,7 @@ DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL')
 ACCEPTATION_URL = 'http://127.0.0.1:8000/login/'
 
 INSTALLED_APPS = [
+    'django_extensions',
     'Website',
     'django.contrib.admin',
     'django.contrib.auth',
@@ -146,3 +148,7 @@ STATICFILES_DIRS = [
 ]
 
 MEDIA_ROOT = os.path.join(BASE_DIR, 'Website/static/images')
+GRAPH_MODELS = {
+    'all_applications': True,
+    'graph_models': True,
+}
