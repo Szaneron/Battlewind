@@ -77,8 +77,7 @@ class Tournament(models.Model):
     organizer = models.ForeignKey(Organizer, on_delete=models.CASCADE, null=True)
     image = models.ImageField(default='default_image_tournament.png', null=True, blank=True,
                               upload_to='tournaments_images')
-    date = models.DateField(null=True)
-    time = models.TimeField(null=True)
+    dateTime = models.DateTimeField(null=True, blank=True)
     server = models.CharField(max_length=10)
     registeredTeams = models.ManyToManyField(Team, related_name='registeredTeams', blank=True)
     maxTeams = models.IntegerField()

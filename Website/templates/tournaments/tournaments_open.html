@@ -30,11 +30,11 @@
                                     <div class="row">
                                         <div class="col-md-6">
                                             <span>Organizator: <b>{{ tournament.organizer }}</b></span><br>
-                                            <span>Data turnieju: <b>{{ tournament.date }}</b></span><br>
+                                            <span>Data turnieju: <b>{{ tournament.dateTime|date:'d/m/Y' }}</b></span><br>
                                         </div>
                                         <div class="col-md-6">
                                             <span>Serwer: <b>{{ tournament.server }}</b></span><br>
-                                            <span>Godzina: <b>{{ tournament.time.isoformat }}</b></span><br>
+                                            <span>Godzina: <b>{{ tournament.dateTime|time:'H:i:s' }}</b></span><br>
                                         </div>
                                     </div>
                                     <hr class="m-2">

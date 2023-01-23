@@ -1,9 +1,8 @@
 import datetime
 import json
 import random
-from datetime import date, datetime
+from datetime import datetime
 
-import pandas as pd
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
@@ -21,8 +20,8 @@ from .utilities import send_invitation, send_invitation_accepted
 # Create your views here.
 
 def home(request):
-    incomingTournaments = Tournament.objects.filter(status='in_progress').order_by('date' and 'time')[:4]
-    latestTournaments = Tournament.objects.filter(status='completed').order_by('-date' and '-time')[:4]
+    incomingTournaments = Tournament.objects.filter(status='in_progress').order_by('dateTime')[:4]
+    latestTournaments = Tournament.objects.filter(status='completed').order_by('-dateTime')[:4]
     try:
         userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
         if userInvitations:
@@ -331,7 +330,7 @@ def accept_invitation(request):
 
 
 def show_open_tournaments(request):
-    tournaments = Tournament.objects.filter(status='in_progress').order_by('date' and 'time')
+    tournaments = Tournament.objects.filter(status='in_progress').order_by('dateTime')
     try:
         userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
         if userInvitations:
@@ -350,21 +349,19 @@ def details_tournament(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
 
+    tournamentDateTime = tournament.dateTime.strftime("%d/%m/%Y %H:%M:%S")
+    tournamentDate = tournament.dateTime.date().strftime("%d/%m/%Y")
+    tournamentTime = tournament.dateTime.time().strftime("%H:%M:%S")
+
+    currentDateTime = datetime.now()
+    currentDateTime = currentDateTime.strftime("%d/%m/%Y %H:%M:%S")
+
     def check_teams():
         teamsInTournament = 0
         for _ in teams:
             if tournament.registeredTeams.filter(registeredTeams__registeredTeams=_.id):
                 teamsInTournament += 1
         return teamsInTournament
-
-    dateTime = tournament.date.strftime("%d-%m-%Y")
-    hourTime = tournament.time.strftime("%H:%M:%S")
-    currentDate = date.today()
-    currentDate = pd.to_datetime(currentDate).date()
-    currentDate = currentDate.strftime("%d-%m-%Y")
-    currentTime = datetime.now()
-    currentTime = pd.to_datetime(currentTime).time()
-    currentTime = currentTime.strftime("%H:%M:%S")
 
     teamsInTournament = check_teams()
 
@@ -381,7 +378,7 @@ def details_tournament(request, tournament_id):
     if request.method == 'POST':
         if 'join' in request.POST:
 
-            if currentDate <= dateTime and currentTime < hourTime:
+            if tournamentDateTime >= currentDateTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 members = team.members.all()
                 teamSummonerNameList = []
@@ -408,8 +405,9 @@ def details_tournament(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
-    context = {'tournament': tournament, 'userInvitations': userInvitations, 'teams': teams, 'dateTime': dateTime,
-               'hourTime': hourTime, 'currentTime': currentTime, 'currentDate': currentDate}
+    context = {'tournament': tournament, 'userInvitations': userInvitations, 'teams': teams,
+               'tournamentDate': tournamentDate, 'tournamentTime': tournamentTime,
+               'tournamentDateTime': tournamentDateTime, 'currentDateTime': currentDateTime}
     return render(request, 'tournaments/tournament_view.html', context)
 
 
@@ -418,14 +416,13 @@ def show_tournament_teams(request, tournament_id):
     userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     teams = Team.objects.filter(createdBy=request.user)
-    dateTime = tournament.date.strftime("%d-%m-%Y")
-    hourTime = tournament.time.strftime("%H:%M:%S")
-    currentDate = date.today()
-    currentDate = pd.to_datetime(currentDate).date()
-    currentDate = currentDate.strftime("%d-%m-%Y")
-    currentTime = datetime.now()
-    currentTime = pd.to_datetime(currentTime).time()
-    currentTime = currentTime.strftime("%H:%M:%S")
+
+    tournamentDateTime = tournament.dateTime.strftime("%d/%m/%Y %H:%M:%S")
+    tournamentDate = tournament.dateTime.date().strftime("%d/%m/%Y")
+    tournamentTime = tournament.dateTime.time().strftime("%H:%M:%S")
+
+    currentDateTime = datetime.now()
+    currentDateTime = currentDateTime.strftime("%d/%m/%Y %H:%M:%S")
 
     def get_registered_teams_summoner_names_list():
         tour = tournament.registeredTeams.all()
@@ -450,7 +447,7 @@ def show_tournament_teams(request, tournament_id):
 
     if request.method == 'POST':
         if 'leave' in request.POST:
-            if currentDate <= dateTime and currentTime < hourTime:
+            if tournamentDateTime >= currentDateTime:
                 teamName = check_teams()[0]
                 tournament.registeredTeams.remove(teamName.id)
                 messages.success(request, 'Drużyna wypisana z turnieju')
@@ -459,7 +456,7 @@ def show_tournament_teams(request, tournament_id):
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości opuszczenia')
 
         if 'join' in request.POST:
-            if currentDate <= dateTime and currentTime < hourTime:
+            if tournamentDateTime >= currentDateTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 members = team.members.all()
                 teamSummonerNameList = []
@@ -486,8 +483,9 @@ def show_tournament_teams(request, tournament_id):
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
-    context = {'tournament': tournament, 'userInvitations': userInvitations, 'teams': teams, 'dateTime': dateTime,
-               'hourTime': hourTime, 'currentTime': currentTime, 'currentDate': currentDate}
+    context = {'tournament': tournament, 'userInvitations': userInvitations, 'teams': teams,
+               'tournamentDate': tournamentDate, 'tournamentTime': tournamentTime,
+               'tournamentDateTime': tournamentDateTime, 'currentDateTime': currentDateTime}
 
     return render(request, 'tournaments/teams_in_tournament.html', context)
 
@@ -498,14 +496,12 @@ def show_tournament_bracket(request, tournament_id):
     tournament = get_object_or_404(Tournament, pk=tournament_id)
     matches = Match.objects.filter(tournamentName=tournament.id)
     teams = Team.objects.filter(members__in=[request.user])
-    dateTime = tournament.date.strftime("%d-%m-%Y")
-    hourTime = tournament.time.strftime("%H:%M:%S")
-    currentDate = date.today()
-    currentDate = pd.to_datetime(currentDate).date()
-    currentDate = currentDate.strftime("%d-%m-%Y")
-    currentTime = datetime.now()
-    currentTime = pd.to_datetime(currentTime).time()
-    currentTime = currentTime.strftime("%H:%M:%S")
+    tournamentDateTime = tournament.dateTime.strftime("%d/%m/%Y %H:%M:%S")
+    tournamentDate = tournament.dateTime.date().strftime("%d/%m/%Y")
+    tournamentTime = tournament.dateTime.time().strftime("%H:%M:%S")
+
+    currentDateTime = datetime.now()
+    currentDateTime = currentDateTime.strftime("%d/%m/%Y %H:%M:%S")
 
     def create_bracket_4(matchCounter, counter):
         for team1, team2 in grouped(tournamentTeamList, 2):
@@ -539,7 +535,7 @@ def show_tournament_bracket(request, tournament_id):
             matchCounter += 1
             counter += 1
 
-    if currentDate <= dateTime and currentTime < hourTime:
+    if tournamentDateTime >= currentDateTime:
         messages.error(request, 'Drabinka nie jest jeszcze gotowa, poczekaj na rozpoczęcie turnieju')
     else:
         if not matches:
@@ -774,8 +770,10 @@ def show_tournament_bracket(request, tournament_id):
                 context = {'tournament': tournament, 'userInvitations': userInvitations,
                            'teamRegisteredByUser': teamRegisteredByUser, 'teamList': teamList,
                            'resusltsList': resusltsList, 'matchObject': matchObject,
-                           'dateTime': dateTime, "hourTime": hourTime, 'firstPlace': firstPlace,
-                           'secondPlace': secondPlace, 'thirdPlace': thirdPlace, 'fourthPlace': fourthPlace}
+                           'tournamentDate': tournamentDate, 'tournamentTime': tournamentTime,
+                           'tournamentDateTime': tournamentDateTime, 'currentDateTime': currentDateTime,
+                           'firstPlace': firstPlace, 'secondPlace': secondPlace, 'thirdPlace': thirdPlace,
+                           'fourthPlace': fourthPlace}
 
                 return render(request, 'tournaments/bracket_in_tournament.html', context)
 
@@ -783,8 +781,9 @@ def show_tournament_bracket(request, tournament_id):
                        'resusltsList': resusltsList}
             return render(request, 'tournaments/bracket_in_tournament.html', context)
 
-    context = {'tournament': tournament, 'userInvitations': userInvitations, 'dateTime': dateTime, "hourTime": hourTime,
-               'matches': matches, 'currentTime': currentTime, 'currentDate': currentDate}
+    context = {'tournament': tournament, 'userInvitations': userInvitations,
+               'matches': matches, 'tournamentDate': tournamentDate, 'tournamentTime': tournamentTime,
+               'tournamentDateTime': tournamentDateTime, 'currentDateTime': currentDateTime}
     return render(request, 'tournaments/bracket_in_tournament.html', context)
 
 
@@ -792,16 +791,17 @@ def show_tournament_bracket(request, tournament_id):
 def rules_tournament(request, tournament_id):
     userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
     tournament = get_object_or_404(Tournament, pk=tournament_id)
-    dateTime = tournament.date.strftime("%d-%m-%Y")
-    hourTime = tournament.time.strftime("%H:%M:%S")
-    currentDate = date.today()
-    currentDate = pd.to_datetime(currentDate).date()
-    currentDate = currentDate.strftime("%d-%m-%Y")
-    currentTime = datetime.now()
-    currentTime = pd.to_datetime(currentTime).time()
-    currentTime = currentTime.strftime("%H:%M:%S")
-    context = {'userInvitations': userInvitations, 'tournament': tournament, 'dateTime': dateTime, 'hourTime': hourTime,
-               'currentDate': currentDate, 'currentTime': currentTime}
+
+    tournamentDateTime = tournament.dateTime.strftime("%d/%m/%Y %H:%M:%S")
+    tournamentDate = tournament.dateTime.date().strftime("%d/%m/%Y")
+    tournamentTime = tournament.dateTime.time().strftime("%H:%M:%S")
+
+    currentDateTime = datetime.now()
+    currentDateTime = currentDateTime.strftime("%d/%m/%Y %H:%M:%S")
+
+    context = {'userInvitations': userInvitations, 'tournament': tournament, 'tournamentDate': tournamentDate,
+               'tournamentTime': tournamentTime, 'tournamentDateTime': tournamentDateTime,
+               'currentDateTime': currentDateTime}
     return render(request, 'tournaments/tournament_rules.html', context)
 
 
