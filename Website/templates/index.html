@@ -2,20 +2,122 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name=”viewport”, initial-scale=1.0”>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
     <title>Battlewind</title>
 
+    <style>
+        .carousel .carousel-item {
+            height: 300px;
+        }
+
+        .carousel-item img {
+            position: absolute;
+            object-fit: cover;
+            top: 0;
+            left: 0;
+            max-height: 300px;
+        }
+
+        @media (max-width: 480px) {
+            .carousel .carousel-item {
+                height: 200px;
+            }
+        }
+
+    </style>
 </head>
-<body>
-<div class="container">
+<body style="background-color: #16181b">
+{% include 'navbar.html' %}
+{% load static %}
+<div class="container text-warning min-vh-100" style="padding-top: 100px; background-color: #3b424a">
     <div class="row">
-        {% include 'navbar.html' %}
+        <div class="col-lg-2"></div>
+        <div class="col-lg-8">
+            {% include 'messages.html' %}
+            <div id="carouselExampleDark" class="carousel carousel slide" data-bs-ride="carousel">
+                <div class="carousel-indicators">
+                    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="0" class="active"
+                            aria-current="true" aria-label="Slide 1"></button>
+                    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="1"
+                            aria-label="Slide 2"></button>
+                    <button type="button" data-bs-target="#carouselExampleDark" data-bs-slide-to="2"
+                            aria-label="Slide 3"></button>
+                </div>
+                <div class="carousel-inner">
+                    <div class="carousel-item active" data-bs-interval="5000">
+                        <img src="{% static 'images/home_images/slider1.png' %}"
+                             class="img-fluid w-100 rounded-5 opacity-50"
+                             alt="...">
+                        <div class="carousel-caption d-none d-md-block">
+                            <h2 class="text-warning"><b>Rozwijaj swoje umiejętności</b></h2>
+                            <p><b>Graj razem ze swoją drużyną i staczajcie pojedynki, które na długo zsotną wam w
+                                pamięci</b></p>
+                        </div>
+                    </div>
+                    <div class="carousel-item" data-bs-interval="5000">
+                        <img src="{% static 'images/home_images/slider2.png' %}"
+                             class="d-block w-100 rounded-5 opacity-50"
+                             alt="...">
+                        <div class="carousel-caption d-none d-md-block">
+                            <h2 class="text-warning"><b>Zapisuj się do turniejów</b></h2>
+                            <p><b>Zgłaszaj drużyny do uczestnictwa w turnieju, rywalizuj z innymi zespołami w walce o 1
+                                miejsce </b></p>
+                        </div>
+                    </div>
+                    <div class="carousel-item">
+                        <img src="{% static 'images/home_images/slider3.png' %}"
+                             class="d-block w-100 rounded-5 opacity-50"
+                             alt="...">
+                        <div class="carousel-caption d-none d-md-block">
+                            <h2 class="text-warning"><b>Pnij się w rankingu</b></h2>
+                            <p><b>Rozgrywaj i wygrywaj jak najwięcej meczy by zajmoać najwyższe miejsca </b></p>
+                        </div>
+                    </div>
+                </div>
+                <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleDark"
+                        data-bs-slide="prev">
+                    <span class="carousel-control-prev-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Previous</span>
+                </button>
+                <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleDark"
+                        data-bs-slide="next">
+                    <span class="carousel-control-next-icon" aria-hidden="true"></span>
+                    <span class="visually-hidden">Next</span>
+                </button>
+            </div>
+        </div>
+        <div class="col-2"></div>
     </div>
-</div>
-<div class="container bg-danger" style="height: 200px; padding-top: 100px">
-    <div class="row"> Hello</div>
+    <div class="row mt-4">
+        <h4>Nadchodzace turnieje</h4>
+        {% for tournament in incomingTournaments %}
+            <div class="col-lg-3">
+                <div class="card p-2 mb-2 bg-warning">
+                    <a href="{% url 'details_tournament' tournament.id %}" class="btn btn-warning">
+                        <img src="{{ tournament.image.url }}" alt="" style="max-height: 30%; max-width: 30%">
+                        <h6><b>{{ tournament.name }}</b></h6>
+                        <span>{{ tournament.server }}&nbsp; - &nbsp;5v5&nbsp; - &nbsp;zapisanych: <b> {{ tournament.registeredTeams.count }}/{{ tournament.maxTeams }}</b></span>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="row mt-3">
+        <h4 class="text-light">Zakończone turnieje</h4>
+        {% for tournament in latestTournaments %}
+            <div class="col-lg-3">
+                <div class="card p-2 mb-2 bg-light">
+                    <a href="{% url 'details_tournament' tournament.id %}" class="btn btn-light">
+                        <img src="{{ tournament.image.url }}" alt="" style="max-height: 30%; max-width: 30%">
+                        <h6><b>{{ tournament.name }}</b></h6>
+                        <span>{{ tournament.server }}&nbsp; - &nbsp;5v5&nbsp; - &nbsp;zapisanych: <b> {{ tournament.registeredTeams.count }}/{{ tournament.maxTeams }}</b></span>
+                    </a>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
 
 </div>
 </body>

@@ -5,7 +5,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <title>Title</title>
+    <title>Battlewind</title>
 </head>
 <body style="background-color: #16181b">
 
@@ -38,12 +38,24 @@
                                                                    class="text-dark"
                                                                    style="text-decoration: none">Przegląd</a>
                 </li>
-                <li class="list-group-item bg-warning border-0"><a href="{% url 'teams_in_tournament' tournament.id %}"
-                                                                   class="text-dark"
-                                                                   style="text-decoration: none">Drużyny</a></li>
+                <li class="list-group-item bg-warning border-0">
+                    <a href="{% url 'teams_in_tournament' tournament.id %}" class="text-dark"
+                       style="text-decoration: none">
+                        Drużyny
+                    </a>
+                </li>
                 <li class="list-group-item bg-warning border-0">
                     <a href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
-                       style="text-decoration: none">Drabinka</a></li>
+                       style="text-decoration: none">
+                        Drabinka
+                    </a>
+                </li>
+                <li class="list-group-item bg-warning border-0">
+                    <a href="{% url 'rules_tournament' tournament.id %}" class="text-dark"
+                       style="text-decoration: none">
+                        Regulamin
+                    </a>
+                </li>
             </ul>
         </div>
         {% if currentDate == dateTime and currentTime < hourTime %}

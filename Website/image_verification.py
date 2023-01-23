@@ -1,8 +1,9 @@
 import cv2
+import numpy as np
 import pytesseract
+from django.contrib import messages
 from django.shortcuts import get_object_or_404
 
-from django.contrib import messages
 from Website.models import *
 
 
@@ -20,6 +21,87 @@ def verify_iamge(request, match_id):
 
     # Read end game summary image
     img_grey = cv2.imread(matchEndImagePath, 0)
+    img_color = cv2.imread(matchEndImagePath, 1)
+    img_template = cv2.imread(r'Website/static/mecz_template.png', 1)
+
+    # Function that checks key areas of the image for edits
+    def verify_key_points_of_image():
+        # Key for middle horizontal space
+        keyOneImage = cv2.resize(img_color[355:400, 390:1050], (0, 0), fx=1, fy=1)
+        keyOneTemplate = cv2.resize(img_template[355:400, 390:1050], (0, 0), fx=1, fy=1)
+
+        # Keys for Victory/Defeat
+        keyTwoImageTop = cv2.resize(img_color[15:22, 70:200], (0, 0), fx=1, fy=1)
+        keyTwoTemplateTop = cv2.resize(img_template[15:22, 70:200], (0, 0), fx=1, fy=1)
+        keyTwoImageBottom = cv2.resize(img_color[39:48, 70:200], (0, 0), fx=1, fy=1)
+        keyTwoTemplateBottom = cv2.resize(img_template[39:48, 70:200], (0, 0), fx=1, fy=1)
+        keyThreeImage = cv2.resize(img_color[15:45, 70:78], (0, 0), fx=1, fy=1)
+        keyThreeTemplate = cv2.resize(img_template[15:45, 70:78], (0, 0), fx=1, fy=1)
+
+        # Keys for first team players change
+        keyFourImagePlayer1 = cv2.resize(img_color[155:161, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer1 = cv2.resize(img_template[155:161, 230:340], (0, 0), fx=1, fy=1)
+        keyFourImagePlayer2 = cv2.resize(img_color[195:201, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer2 = cv2.resize(img_template[195:201, 230:340], (0, 0), fx=1, fy=1)
+        keyFourImagePlayer3 = cv2.resize(img_color[236:243, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer3 = cv2.resize(img_template[236:243, 230:340], (0, 0), fx=1, fy=1)
+
+        # Keys for second team players change
+        keyFourImagePlayer4 = cv2.resize(img_color[395:403, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer4 = cv2.resize(img_template[395:403, 230:340], (0, 0), fx=1, fy=1)
+        keyFourImagePlayer5 = cv2.resize(img_color[437:444, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer5 = cv2.resize(img_template[437:444, 230:340], (0, 0), fx=1, fy=1)
+        keyFourImagePlayer6 = cv2.resize(img_color[477:485, 230:340], (0, 0), fx=1, fy=1)
+        keyFourTemplatePlayer6 = cv2.resize(img_template[477:485, 230:340], (0, 0), fx=1, fy=1)
+
+        # Key for middle vertical space
+        keyFiveImage = cv2.resize(img_color[100:630, 650:715], (0, 0), fx=1, fy=1)
+        keyFiveTemplate = cv2.resize(img_template[100:630, 650:715], (0, 0), fx=1, fy=1)
+
+        # Key for summoner name
+        keySixImage1 = cv2.resize(img_color[29:34, 1151:1320], (0, 0), fx=1, fy=1)
+        keySixTemplate1 = cv2.resize(img_template[29:34, 1151:1320], (0, 0), fx=1, fy=1)
+        keySixImage2 = cv2.resize(img_color[37:50, 1127:1135], (0, 0), fx=1, fy=1)
+        keySixTemplate2 = cv2.resize(img_template[37:50, 1127:1135], (0, 0), fx=1, fy=1)
+
+        # Function that calculates the percentage difference between the uploaded image and the template
+        def get_diff(image, template):
+            result = cv2.absdiff(image, template)
+            result = result.astype(np.uint8)
+            percentage = (np.count_nonzero(result) * 100) / result.size
+            return percentage
+
+        resultOne = get_diff(keyOneImage, keyOneTemplate)
+        print('resultOne: ', resultOne)
+        resultTwo1 = get_diff(keyTwoImageTop, keyTwoTemplateTop)
+        print('resultTwo1: ', resultTwo1)
+        resultTwo2 = get_diff(keyTwoImageBottom, keyTwoTemplateBottom)
+        print('resultTwo2: ', resultTwo2)
+        resultThree = get_diff(keyThreeImage, keyThreeTemplate)
+        print('resultThree: ', resultThree)
+        resultFourP1 = get_diff(keyFourImagePlayer1, keyFourTemplatePlayer1)
+        print('resultFourP1: ', resultFourP1)
+        resultFourP2 = get_diff(keyFourImagePlayer2, keyFourTemplatePlayer2)
+        print('resultFourP2: ', resultFourP2)
+        resultFourP3 = get_diff(keyFourImagePlayer3, keyFourTemplatePlayer3)
+        print('resultFourP3: ', resultFourP3)
+        resultFourP4 = get_diff(keyFourImagePlayer4, keyFourTemplatePlayer4)
+        print('resultFourP4: ', resultFourP4)
+        resultFourP5 = get_diff(keyFourImagePlayer5, keyFourTemplatePlayer5)
+        print('resultFourP5: ', resultFourP5)
+        resultFourP6 = get_diff(keyFourImagePlayer6, keyFourTemplatePlayer6)
+        print('resultFourP6: ', resultFourP6)
+        resultFive = get_diff(keyFiveImage, keyFiveTemplate)
+        print('resultFive: ', resultFive)
+        resultSix1 = get_diff(keySixImage1, keySixTemplate1)
+        print('resultSix1: ', resultSix1)
+        resultSix2 = get_diff(keySixImage2, keySixTemplate2)
+        print('resultSix2: ', resultSix2)
+
+        if resultOne < 1 and resultTwo1 < 1 and resultTwo2 < 1 and resultThree < 1 and resultFourP1 < 1 and resultFourP2 < 1 and resultFourP3 < 1 and resultFourP4 < 1 and resultFourP5 < 1 and resultFourP6 < 1 and resultFive < 1 and resultSix1 < 1 and resultSix2 < 1:
+            return True
+        else:
+            return False
 
     # Function that fetches summoner names for team Blue from the database and saves them to the list
     def get_blue_team_summoner_names_list():
@@ -159,7 +241,8 @@ def verify_iamge(request, match_id):
     screenTeamBlueSummonerNames = assignedTeamColorList[0]
     screenTeamRedSummonerNames = assignedTeamColorList[1]
 
-    validationResultForTeamBlue = validate_summoner_names(blueTeamSummonerNameListLower, screenTeamBlueSummonerNames)
+    validationResultForTeamBlue = validate_summoner_names(blueTeamSummonerNameListLower,
+                                                          screenTeamBlueSummonerNames)
     print(validationResultForTeamBlue)
     validationResultForTeamRed = validate_summoner_names(redTeamSummonerNameListLower, screenTeamRedSummonerNames)
     print(validationResultForTeamRed)
@@ -168,36 +251,9 @@ def verify_iamge(request, match_id):
     print(endGameStatus)
 
     if validationResultForTeamBlue >= 3 and validationResultForTeamRed >= 3:
-        winnerTeam = get_winner_team(blueTeamSummonerNameListLower, redTeamSummonerNameListLower,
-                                     screenSenderSummonerNameLower,
-                                     endGameStatus)
-        print(winnerTeam)
-
-    return winnerTeam
-
-################################################################################
-#
-# def verify_key_points_of_image():
-#     keyOne = cv2.resize(img_color[355:400, 390:1050], (0, 0), fx=1, fy=1)
-#
-#     # keyTwo = cv2.resize(img_color[80:655, 650:710], (0, 0), fx=1, fy=1)
-#     keyTwoT = cv2.resize(img_template[80:655, 650:710], (0, 0), fx=1.2, fy=1.2)
-#     keyTwo = cv2.resize(img_grey[395:600, 190:340], (0, 0), fx=2, fy=2)
-#     result = cv2.matchTemplate(img_color, key2, cv2.TM_SQDIFF_NORMED)
-#     min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
-#     if min_loc == (0, 0) and max_loc == (4, 5):
-#         print("MATCH")
-#     else:
-#         print("NOT MATCH")
-#     found = (min_loc, max_loc)
-#     print(found)
-#     if cv2.TM_CCOEFF_NORMED in [cv2.TM_SQDIFF, cv2.TM_SQDIFF_NORMED]:
-#         location = min_loc
-#     else:
-#         location = max_loc
-#
-#     bottom_right = (location[0] + w, location[1] + h)
-#     cv2.rectangle(img_color, location, bottom_right, 255, 5)
-#     cv2.imshow('Match', img_color)
-#     cv2.waitKey(0)
-#     cv2.destroyAllWindows()
+        if verify_key_points_of_image():
+            winnerTeam = get_winner_team(blueTeamSummonerNameListLower, redTeamSummonerNameListLower,
+                                         screenSenderSummonerNameLower, endGameStatus)
+            return winnerTeam
+        else:
+            return 0

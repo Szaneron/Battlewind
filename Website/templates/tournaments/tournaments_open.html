@@ -5,20 +5,19 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <title>Title</title>
+    <title>Battlewind</title>
 </head>
 <body style="background-color: #16181b">
 {% include 'navbar.html' %}
-<div class="container text-white min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+<div class="container text-white min-vh-100" style="padding-top: 80px; background-color: #3b424a">
     <div class="row">
         <div class="col-md-1"></div>
         <div class="col-md-10 ">
-            <h1 class="text-center mb-4">Aktualne turnieje:</h1>
+            <h1 class="text-center mb-4">Nadchodzące turnieje:</h1>
             {% for tournament in tournaments %}
-
-                <div class="card bg-warning m-3 text-dark">
-                    <a href="{% url 'details_tournament' tournament.id %}" class="btn">
-                        <div class="card-body">
+                <div class="card bg-warning mb-3 text-dark">
+                    <a href="{% url 'details_tournament' tournament.id %}" class="btn p-0">
+                        <div class="card-body  p-2">
                             <div class="row d-flex align-items-center">
                                 <div class="col-md-3">
                                     <img alt="" class="d-inline-flex rounded-2 d-block" src="{{ tournament.image.url }}"
@@ -26,8 +25,8 @@
                                 </div>
 
                                 <div class="col-md-9 text-center">
-                                    <h2>{{ tournament.name }}</h2>
-                                    <hr>
+                                    <h4>{{ tournament.name }}</h4>
+                                    <hr class="m-2">
                                     <div class="row">
                                         <div class="col-md-6">
                                             <span>Organizator: <b>{{ tournament.organizer }}</b></span><br>
@@ -38,7 +37,7 @@
                                             <span>Godzina: <b>{{ tournament.time.isoformat }}</b></span><br>
                                         </div>
                                     </div>
-                                    <hr>
+                                    <hr class="m-2">
                                     <span>Zarejestrowane drużyny: <b>{{ tournament.registeredTeams.count }}
                                     / {{ tournament.maxTeams }}</b></span>
                                 </div>

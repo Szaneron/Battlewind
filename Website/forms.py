@@ -1,5 +1,5 @@
 from django import forms
-from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import UserCreationForm, PasswordChangeForm
 from django.forms import ModelForm
 
 from .models import *
@@ -24,6 +24,15 @@ class EditUserProfileSettingsForm(ModelForm):
             'summonerName': forms.TextInput(attrs={'class': 'form-control'}),
             'profilePic': forms.FileInput(attrs={'class': 'form-control', 'label': ''})
         }
+
+
+class MyPasswordChangeForm(PasswordChangeForm):
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["old_password"].widget = forms.PasswordInput(attrs={"class": "form-control", 'label': ''})
+        self.fields["new_password1"].widget = forms.PasswordInput(attrs={"class": "form-control", 'label': ''})
+        self.fields["new_password2"].widget = forms.PasswordInput(attrs={"class": "form-control", 'label': ''})
+        # other customization
 
 
 class CreateTeamForm(ModelForm):

@@ -19,7 +19,7 @@
 
 <div class="container text-white min-vh-100" style="padding-top: 100px; background-color: #3b424a">
     <div class="row ">
-        <div class="col-md-2 text-center">
+        <div class="col-md-2 text-center d-block">
             <a class="btn btn-warning text-white mb-3 custom" href="{% url 'profile' %}">
                 <i class="bi bi-backspace-fill" style="float: left"></i> Wróć do profilu
             </a>
@@ -27,6 +27,7 @@
                 <a class="btn btn-warning text-white mb-3 custom" href="{% url 'invite' team.id %}">
                     <i class="bi bi-person-plus-fill" style="float: left"></i> Zaproś do drużyny
                 </a>
+
             {% endif %}
         </div>
         <div class="col-md-8 text-center">
@@ -35,7 +36,6 @@
                 <div class="card-header">
                     <h1><b>{{ team.teamName }}</b></h1>
                 </div>
-
                 <div class="card-body">
 
                     <h4 class="mt-6 text-center">Członkowie:</h4>
@@ -109,8 +109,13 @@
                                         <div class="col-md-12">
                                             <label for="validationCustom01" class="form-label">Wpisz nazwę użytkownika
                                                 którego chcesz usunąć:</label>
-                                            <input type="text" class="form-control" id="validationCustom01" required
-                                                   name="username">
+                                            <select type="text" class="form-control text-center" id="validationCustom01"
+                                                    required
+                                                    name="username">
+                                                {% for member in team.members.all %}
+                                                    <option>{{ member.username }}</option>
+                                                {% endfor %}
+                                            </select>
                                             <div class="invalid-feedback">
                                                 Wprowadź nazwę użytkownika
                                             </div>
@@ -125,9 +130,25 @@
                             </div>
                         </div>
                     </div>
-                {% endif %}
-            </div>
 
+                    </div>
+                    <form method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-danger text-white bi bi-trash custom mt-4 float-end" name="delete_team"
+                                type="submit"> Usuń drużynę
+                        </button>
+                    </form>
+                {% endif %}
+            {% if team.createdBy != request.user %}
+                <div class="card-footer">
+                    <form method="post">
+                        {% csrf_token %}
+                        <button class="btn btn-danger text-white bi bi-trash custom float-end" name="leave_team"
+                                type="submit"> Opuść drużynę
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
         </div>
     </div>
     {% if invitations %}

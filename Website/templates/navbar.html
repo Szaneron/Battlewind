@@ -34,21 +34,10 @@
         </button>
         <div class="collapse navbar-collapse mw-100" id="navbarNav">
             <ul class="navbar-nav">
-                <li class="nav-item active">
-                    <a href="#" class="nav-link active">
-                        Przeglądaj
-                    </a>
-                </li>
                 <li class="nav-item dropdown">
-                    <a href="#" class="nav-link active" id="navbarDropdown" role="button"
-                       data-bs-toggle="dropdown" aria-expanded="false">
+                    <a href="{% url 'open_tournament' %}" class="nav-link active">
                         Turnieje
                     </a>
-                    <ul class="dropdown-menu text-center bg-warning" aria-labelledby="navbarDropdown">
-                        <li><a href="{% url 'open_tournament' %}" class="dropdown-item btn">Aktywne turnieje</a></li>
-                        <li><a href="{% url 'close_tournament' %}" class="dropdown-item btn">Zakończone turnieje</a>
-                        </li>
-                    </ul>
                 </li>
                 <li class="nav-item active">
                     <a href="{% url 'ranking-view' %}" class="nav-link active">
@@ -58,8 +47,15 @@
             </ul>
             <ul class="navbar-nav ms-auto">
                 {% if request.user.is_authenticated %}
+                    {% if userInvitations %}
+                        <li class="nav-item dropdown text-center pe-3 ps-3">
+                            <a href="{% url 'accept_invitation' %}" class="nav-link active">
+                                <i class="bi bi-bell-fill text-warning"> Zaproszenia</i>
+                            </a>
+                        </li>
+                    {% endif %}
                     <li class="nav-item dropdown">
-                        <a href="#" class="nav-link dropdown-toggle" id="navbarDropdown" role="button"
+                        <a href="#" class="nav-link active dropdown-toggle" id="navbarDropdown" role="button"
                            data-bs-toggle="dropdown" aria-expanded="false">
                             {{ request.user }}
                         </a>

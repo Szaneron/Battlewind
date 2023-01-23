@@ -5,17 +5,17 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
-    <title>Title</title>
+    <title>Battlewind</title>
 </head>
 <body style="background-color: #16181b">
 
 {% include 'navbar.html' %}
-<div class="container min-vh-100" style="padding-top: 100px; background-color: #3b424a">
+<div class="container min-vh-100" style="padding-top: 80px; background-color: #3b424a">
     {% include 'messages.html' %}
     <div class="row d-flex align-items-center bg-warning m-3 rounded-5">
         <div class="col-md-3">
             <img class="rounded mx-auto d-block align-middle" src="{{ tournament.image.url }}"
-                 style="max-height: 125px; max-width: 125px">
+                 style="max-height: 80px; max-width: 80px">
         </div>
         <div class="col-md-9">
             <h1 class="text-center text-dark">{{ tournament.name }}</h1>
@@ -35,6 +35,12 @@
                 <li class="list-group-item bg-warning border-0"><a
                         href="{% url 'bracket_in_tournament' tournament.id %}" class="text-dark"
                         style="text-decoration: none">Drabinka</a></li>
+                <li class="list-group-item bg-warning border-0">
+                    <a href="{% url 'rules_tournament' tournament.id %}" class="text-dark"
+                       style="text-decoration: none">
+                        Regulamin
+                    </a>
+                </li>
             </ul>
         </div>
     </div>
@@ -111,7 +117,11 @@
             <div class="row pt-3">
                 <div class="col-md-3"></div>
                 <div class="col-md-6 text-center">
-                    <p class="text-center text-white"> Prześlij plik png z tabeli podsumowywującej rozgrywkę:</p>
+                    <h4 class="text-center text-warning"> Prześlij plik z tabeli podsumowywującej rozgrywkę:</h4>
+                    <span class="text-white">Pamiętaj! Zrzut musi wykonany być za pomocą skrótu
+                    klawiszowego
+                    </span><br>
+                    <span class="text-white"><b>"Windows logo + Shift + S"</b> z wybraną opcją trybu okna.</span><br><br>
                     <form method="POST" enctype="multipart/form-data">
                         {% csrf_token %}
                         {{ form.as_p }}
@@ -125,7 +135,7 @@
 
     <div class="row mt-5">
         <div class="col-lg-12 text-center">
-            {% if match.afterGameImage %}
+            {% if match.status == 'completed' %}
                 <h3 class="text-warning">Screen z podsumowania rozgrywki</h3>
                 <img src=" {{ match.afterGameImage.url }}" alt="" style="width: 90%; height: 90%">
             {% endif %}
