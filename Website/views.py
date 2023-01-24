@@ -6,7 +6,6 @@ from datetime import datetime
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout, update_session_auth_hash
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import Group
 from django.shortcuts import render, redirect, get_object_or_404
 
 from Website import image_verification
@@ -16,8 +15,6 @@ from .forms import CreateUserForm, EditUserProfileSettingsForm, CreateTeamForm, 
 from .models import *
 from .utilities import send_invitation, send_invitation_accepted
 
-
-# Create your views here.
 
 def home(request):
     incomingTournaments = Tournament.objects.filter(status='in_progress').order_by('dateTime')[:4]
@@ -42,12 +39,7 @@ def register_page(request):
         form = CreateUserForm(request.POST)
         if form.is_valid():
             user = form.save()
-            group = Group.objects.get(name='user')
-            user.groups.add(group)
-            Profile.objects.create(
-                user=user,
-            )
-            # user = form.cleaned_data.get('username')
+            Profile.objects.create(user=user)
             messages.success(request, 'Konto utworzone')
             return redirect('login')
 
