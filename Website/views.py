@@ -363,8 +363,6 @@ def details_tournament(request, tournament_id):
                 teamsInTournament += 1
         return teamsInTournament
 
-    teamsInTournament = check_teams()
-
     def get_registered_teams_summoner_names_list():
         tour = tournament.registeredTeams.all()
         list = []
@@ -380,6 +378,7 @@ def details_tournament(request, tournament_id):
 
             if tournamentDateTime >= currentDateTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
+                print(team.members.count())
                 members = team.members.all()
                 teamSummonerNameList = []
                 summnerNameCounter = 0
@@ -389,19 +388,22 @@ def details_tournament(request, tournament_id):
                 for elem in teamSummonerNameList:
                     if elem in registeredMembers:
                         summnerNameCounter += 1
+                if team.members.count() == 5:
+                    if summnerNameCounter == 0:
+                        if check_teams() == 0:
+                            if tournament.registeredTeams.count() < tournament.maxTeams:
+                                tournament.registeredTeams.add(team.id)
+                                tournament.save()
+                                messages.success(request, "Drużyna dołączyła do turnieju")
+                            else:
+                                messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
 
-                if summnerNameCounter == 0:
-                    if teamsInTournament == 0:
-                        if tournament.registeredTeams.count() < tournament.maxTeams:
-                            tournament.registeredTeams.add(team.id)
-                            tournament.save()
-                            messages.success(request, "Drużyna dołączyła do turnieju")
                         else:
-                            messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+                            messages.error(request, 'Zapisałeś już jedną swoją drużynę')
                     else:
-                        messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+                        messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
                 else:
-                    messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
+                    messages.error(request, 'W drużynie nie ma 5 zawodników')
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
@@ -443,19 +445,19 @@ def show_tournament_teams(request, tournament_id):
                 teamInfo[1] = 1
         return teamInfo
 
-    teamsInTournament = check_teams()
-
     if request.method == 'POST':
         if 'leave' in request.POST:
             if tournamentDateTime >= currentDateTime:
                 teamName = check_teams()[0]
                 tournament.registeredTeams.remove(teamName.id)
+                tournament.save()
                 messages.success(request, 'Drużyna wypisana z turnieju')
 
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości opuszczenia')
 
         if 'join' in request.POST:
+
             if tournamentDateTime >= currentDateTime:
                 team = Team.objects.get(teamName=request.POST.get('teamName'))
                 members = team.members.all()
@@ -467,19 +469,21 @@ def show_tournament_teams(request, tournament_id):
                 for elem in teamSummonerNameList:
                     if elem in registeredMembers:
                         summnerNameCounter += 1
-
-                if summnerNameCounter == 0:
-                    if teamsInTournament == 0:
-                        if tournament.registeredTeams.count() < tournament.maxTeams:
-                            tournament.registeredTeams.add(team.id)
-                            tournament.save()
-                            messages.success(request, "Drużyna dołączyła do turnieju")
+                if team.members.count() == 5:
+                    if summnerNameCounter == 0:
+                        if check_teams()[1] == 0:
+                            if tournament.registeredTeams.count() < tournament.maxTeams:
+                                tournament.registeredTeams.add(team.id)
+                                tournament.save()
+                                messages.success(request, "Drużyna dołączyła do turnieju")
+                            else:
+                                messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
                         else:
-                            messages.error(request, 'Nie ma już wolnych miejsc dla nowej drużyny')
+                            messages.error(request, 'Zapisałeś już jedną swoją drużynę')
                     else:
-                        messages.error(request, 'Zapisałeś już jedną swoją drużynę')
+                        messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
                 else:
-                    messages.error(request, 'Członek twojej drużyny znajduje się już w innej zapisanej drużynie')
+                    messages.error(request, 'W drużynie nie ma 5 zawodników')
             else:
                 messages.error(request, 'Turniej się już rozpoczął. Nie ma już możliwości dołączenia')
 
@@ -1023,9 +1027,15 @@ def show_match_in_tournament(request, tournament_id, match_id):
 
 
 def show_ranking_view(request):
-    userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
     allProfiles = Profile.objects.all().order_by('-rating', '-gamesPlayed')
     rankingTable = []
+    try:
+        userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
+        if userInvitations:
+            context = {'rankingTable': rankingTable, 'userInvitations': userInvitations}
+            return render(request, 'index.html', context)
+    except:
+        pass
 
     def get_number_of_users_list():
         list = []
@@ -1057,6 +1067,6 @@ def show_ranking_view(request):
         innerList.append(profile.rating)
         rankingTable.append(innerList)
 
-    context = {'rankingTable': rankingTable, 'userInvitations': userInvitations}
+    context = {'rankingTable': rankingTable}
 
     return render(request, 'ranking/ranking_view.html', context)
