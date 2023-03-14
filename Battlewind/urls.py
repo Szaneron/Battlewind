@@ -17,6 +17,7 @@ from django.conf import settings
 from django.contrib import admin
 from django.template.defaulttags import url
 from django.urls import include, path
+from django.views.generic import RedirectView
 from django.views.static import serve
 
 from Website import urls
@@ -24,7 +25,7 @@ from Website import urls
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include(urls)),
-
+    url(r'^favicon\.ico$', RedirectView.as_view(url='Website/static/images/fav.png')),
     url(r'^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     url(r'^static/(?P<path>.*)$', serve, {'document_root': settings.STATIC_ROOT}),
 ]
