@@ -1,1 +1,1 @@
-web: gunicorn Battlewind.wsgi
+web: gunicorn Battlewind.wsgi --log-file -
