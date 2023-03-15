@@ -91,7 +91,7 @@
                                         </div>
                                         <div class="col-12">
                                             <button class="btn bg-dark text-white mt-2" type="submit"
-                                                    name="update">Zatwierdź
+                                                    name="update" value="Update">Zatwierdź
                                             </button>
                                         </div>
                                     </form>
@@ -135,7 +135,9 @@
                     <form method="post">
                         {% csrf_token %}
                         <button class="btn btn-danger text-white bi bi-trash custom mt-4 float-end" name="delete_team"
-                                type="submit"> Usuń drużynę
+                                value="Delete_team"
+                                type="submit" onclick="return confirm('Czy na pewno chcesz usunąć drużynę?')"> Usuń
+                            drużynę
                         </button>
                     </form>
                 {% endif %}

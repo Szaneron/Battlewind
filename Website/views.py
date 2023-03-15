@@ -19,14 +19,13 @@ from .utilities import send_invitation, send_invitation_accepted
 def home(request):
     incomingTournaments = Tournament.objects.filter(status='in_progress').order_by('dateTime')[:4]
     latestTournaments = Tournament.objects.filter(status='completed').order_by('-dateTime')[:4]
-    try:
+
+    if request.user.is_authenticated:
         userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
         if userInvitations:
             context = {'incomingTournaments': incomingTournaments, 'latestTournaments': latestTournaments,
                        'userInvitations': userInvitations}
             return render(request, 'index.html', context)
-    except:
-        pass
 
     context = {'incomingTournaments': incomingTournaments, 'latestTournaments': latestTournaments}
     return render(request, 'index.html', context)
@@ -51,7 +50,6 @@ def register_page(request):
 def login_page(request):
     if request.method == 'POST':
         username = request.POST.get('username')
-        print(username)
         password = request.POST.get('password')
 
         user = authenticate(request, username=username, password=password)
@@ -195,7 +193,6 @@ def view_team(request, team_id):
                     messages.success(request, 'Usunięto użytkownika')
 
         if 'delete_team' in request.POST:
-            print('usuwanie')
             team.delete()
             team.save()
 
@@ -323,13 +320,12 @@ def accept_invitation(request):
 
 def show_open_tournaments(request):
     tournaments = Tournament.objects.filter(status='in_progress').order_by('dateTime')
-    try:
+
+    if request.user.is_authenticated:
         userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
         if userInvitations:
             context = {'tournaments': tournaments, 'userInvitations': userInvitations}
             return render(request, 'tournaments/tournaments_open.html', context)
-    except:
-        pass
 
     context = {'tournaments': tournaments}
     return render(request, 'tournaments/tournaments_open.html', context)
@@ -373,15 +369,15 @@ def details_tournament(request, tournament_id):
                 print(team.members.count())
                 members = team.members.all()
                 teamSummonerNameList = []
-                summnerNameCounter = 0
+                summonerNameCounter = 0
                 for member in members:
                     teamSummonerNameList.append(member.profile.summonerName)
 
                 for elem in teamSummonerNameList:
                     if elem in registeredMembers:
-                        summnerNameCounter += 1
+                        summonerNameCounter += 1
                 if team.members.count() == 5:
-                    if summnerNameCounter == 0:
+                    if summonerNameCounter == 0:
                         if check_teams() == 0:
                             if tournament.registeredTeams.count() < tournament.maxTeams:
                                 tournament.registeredTeams.add(team.id)
@@ -1021,13 +1017,6 @@ def show_match_in_tournament(request, tournament_id, match_id):
 def show_ranking_view(request):
     allProfiles = Profile.objects.all().order_by('-rating', '-gamesPlayed')
     rankingTable = []
-    try:
-        userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
-        if userInvitations:
-            context = {'rankingTable': rankingTable, 'userInvitations': userInvitations}
-            return render(request, 'index.html', context)
-    except:
-        pass
 
     def get_number_of_users_list():
         list = []
@@ -1059,6 +1048,11 @@ def show_ranking_view(request):
         innerList.append(profile.rating)
         rankingTable.append(innerList)
 
-    context = {'rankingTable': rankingTable}
+    if request.user.is_authenticated:
+        userInvitations = Invitation.objects.filter(email=request.user.email, status='Invited')
+        if userInvitations:
+            context = {'rankingTable': rankingTable, 'userInvitations': userInvitations}
+            return render(request, 'ranking/ranking_view.html', context)
 
+    context = {'rankingTable': rankingTable}
     return render(request, 'ranking/ranking_view.html', context)
