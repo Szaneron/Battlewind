@@ -3,6 +3,4 @@ opencv-python~=4.7.0.68
 numpy~=1.24.1
 pytesseract~=0.3.10
 python-dotenv~=0.21.0
-gunicorn==20.0.4
-whitenoise==5.2.0
 django-extensions
