@@ -11,7 +11,7 @@ def verify_iamge(request, match_id):
     match = get_object_or_404(Match, pk=match_id)
 
     # path to tesseract.exe
-    pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\Szane\\PycharmProjects\\Tessercat\\tesseract.exe"
+    pytesseract.pytesseract.tesseract_cmd = "C:\\Users\\Armin\\PycharmProjects\\Tessercat\\tesseract.exe"
     coreImagePath = r'Website/static'
     matchEndImagePath = str(match.afterGameImage.url)
     matchEndImagePath = coreImagePath + matchEndImagePath

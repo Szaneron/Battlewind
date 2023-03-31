@@ -188,8 +188,8 @@ class authenticatedUserTestCase(TestCase):
         # check that the team left from the tournament
         self.assertNotIn(self.testTeam, self.tournament.registeredTeams.all())
 
-    # Test of uploading and verifying the image sent by the user
-    def test_upload_image(self):
+    # Test of uploading and verifying the correct image sent by the user
+    def test_upload_correct_image(self):
         # simulate the user submitting a POST request to upload an image
         url = reverse('show_match_in_tournament', args=[self.tournamentUploadImage.id, self.match.id])
         with open('Website/static/mecz1win.png', 'rb') as f:
@@ -210,3 +210,23 @@ class authenticatedUserTestCase(TestCase):
         self.assertEqual(testedMatch.status, 'completed')
         self.assertEqual(self.match3.teamsInMatch.count(), 1)
         self.assertEqual(self.match4.teamsInMatch.count(), 1)
+
+    # Test of uploading and verifying the incorrect image sent by the user
+    def test_upload_incorrect_image(self):
+        # simulate the user submitting a POST request to upload an image
+        url = reverse('show_match_in_tournament', args=[self.tournamentUploadImage.id, self.match.id])
+        with open('Website/static/mecz1loss-edited.png', 'rb') as f:
+            response = self.client.post(url, {'afterGameImage': f, 'user': self.user})
+
+        # check that the response status code is 302 Found (redirect)
+        self.assertEqual(response.status_code, 200)
+
+        # check that the image was saved to the database
+        testedMatch = Match.objects.get(tournamentName=self.tournamentUploadImage, matchName=self.match.matchName)
+        self.assertIsNotNone(testedMatch.afterGameImage.url)
+
+        # check that the match instances were updated correctly
+        self.assertEqual(testedMatch.winner, None)
+        self.assertEqual(testedMatch.losser, None)
+        self.assertEqual(testedMatch.pointBlue, 0)
+        self.assertEqual(testedMatch.pointRed, 0)
