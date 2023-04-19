@@ -1,4 +1,5 @@
-# Battlewind - League of Legends Tournament Management Web Service.
+# Battlewind /
+# League of Legends Tournament Management Web Service.
 
 ## Project description
 The service was written in Python using one of the most popular frameworks for this language - Django. The website allows users to create their own teams, invite other users to join them, and offers these teams the opportunity to participate in a tournament. The application has its own image recognition module, which retrieves a screenshot uploaded by the user and decides which team advances further. It detects potential cheating attempts by editing the submitted image and actively participates in managing the tournament bracket. User profiles contain statistical data on their played matches, which are used to place users in appropriate positions in the website's ranking.
@@ -44,6 +45,7 @@ In the project, unit tests were created to test the logical part of the applicat
 ## Service interface:
 <details> 
 <summary> Home screen </summary>
+
 ![image](https://user-images.githubusercontent.com/58951668/233055967-ae66bdca-f63e-4e40-8a7a-adfe7154d68c.png)
 </details>
 
