@@ -45,37 +45,44 @@ In the project, unit tests were created to test the logical part of the applicat
 ## Service interface:
 <details> 
 <summary> Home screen </summary>
+
 ![image](https://user-images.githubusercontent.com/58951668/233055967-ae66bdca-f63e-4e40-8a7a-adfe7154d68c.png)
 </details>
 
 <details> 
 <summary> User profile page </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056107-a6ce1df4-946a-4eb5-9c55-9676468d5755.png)
 </details>
 
 <details> 
 <summary> Profile editing page </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056685-0f1a1527-e675-4aba-9824-174c2d50b732.png)
 ![image](https://user-images.githubusercontent.com/58951668/233056698-f6755c99-a4b2-41b8-b833-de1ee32e255a.png)
 </details>
 
 <details> 
 <summary> Team details page </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056803-6ae5d87a-03f8-4c3b-96ed-fe867fcbd1c5.png)
 </details>
 
 <details> 
 <summary> A page displaying the details of a specific tournament </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056233-78c8063e-91d1-44c2-badf-1e7768a4626d.png)
 </details>
 
 <details> 
 <summary> A page displaying information about a specific match </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056362-4c25036e-fc75-4b3c-82ee-78b4b0e51bd3.png)
 </details>
 
 <details> 
 <summary> Website presenting the ranking of users </summary>
+  
 ![image](https://user-images.githubusercontent.com/58951668/233056454-96ecc038-b1fe-4a41-8134-6289f716edcb.png)
 </details>
 
