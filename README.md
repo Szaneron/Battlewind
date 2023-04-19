@@ -45,7 +45,6 @@ In the project, unit tests were created to test the logical part of the applicat
 ## Service interface:
 <details> 
 <summary> Home screen </summary>
-
 ![image](https://user-images.githubusercontent.com/58951668/233055967-ae66bdca-f63e-4e40-8a7a-adfe7154d68c.png)
 </details>
 
